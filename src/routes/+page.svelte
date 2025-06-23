@@ -108,6 +108,30 @@
     /** @type {HTMLInputElement} */
     let imgUpload;
 
+    function canvDownload() {
+        var a = document.createElement("a");
+        a.href = document.querySelectorAll("canvas")[1].toDataURL();
+        a.download = globals.imgname + "-superbloomed.png";
+        a.click();
+        
+        if (globals.showPreview == "Full") mainProcess(globals);
+        else if (globals.showPreview == "Glow Only") mainProcess(globals, function() {  }, true);
+        else {
+            mainProcess({
+                baseIMG: globals.baseIMG,
+                threshold: 255,
+                glowLayers: 0,
+                glowRadius: 0,
+                colorize: false,
+                tintcolor: "#000000",
+                saturation: 100,
+                hue: 0,
+                tintopacity: 100,
+                brightness: 100,
+            });
+        }
+    }
+
     onMount(() => {
         //main();
         //sliders();
@@ -228,6 +252,14 @@
         </tr>
 
     </table>
+    <div id="exportpanel">
+        <button id="exportButton" on:click={() => {
+            mainProcess(globals, canvDownload, false);
+        }}>Export Full Image</button>
+        <button id="exportButtonLayer" on:click={() => {
+            mainProcess(globals, canvDownload, true);
+        }}>Export Bloom Layer</button>
+    </div>
 </div>
 <div style="position: fixed; left: 0; top: 0; height: 100vh; width: calc(100vw - 250px); text-align: center;" id="previewSpace">
     <div class="centeredblock">
