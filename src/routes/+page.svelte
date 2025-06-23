@@ -2,8 +2,6 @@
     import bannerImg from "$lib/assets/banner_plain.png";
     import coverartImg from "$lib/assets/coverart.jpg";
     import { onMount } from "svelte";
-    import main from "$lib/scripts/main.js";
-    import sliders from "$lib/scripts/sliders.js";
     import plugin from "$lib/scripts/plugin.js";
     import isolateHighlights from "$lib/scripts/isolate-highlights.js";
 
@@ -133,8 +131,6 @@
     }
 
     onMount(() => {
-        //main();
-        //sliders();
         //plugin();
     });
 </script>
