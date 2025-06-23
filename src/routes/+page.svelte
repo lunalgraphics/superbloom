@@ -122,7 +122,9 @@
             <td>
                 <label for="threshold" class="ygui-label">Threshold</label>
             </td>
-            <td>
+            <td style:width="143px">
+                <input type="range" min="0" max="254" step="1" bind:value={globals.threshold} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="threshold" class="ygui-input" min="0" max="254" step="1"
                     bind:value={globals.threshold} on:input={onInputChange} />
             </td>
@@ -132,6 +134,8 @@
                 <label for="glowLayers" class="ygui-label">Depth</label>
             </td>
             <td>
+                <input type="range" min="1" max="30" step="1" bind:value={globals.glowLayers} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="glowLayers" class="ygui-input" min="1" max="30" step="1"
                     bind:value={globals.glowLayers} on:input={onInputChange} />
             </td>
@@ -141,6 +145,8 @@
                 <label for="glowRadius" class="ygui-label">Radius</label>
             </td>
             <td>
+                <input type="range" min="0" max="6" step="0.1" bind:value={globals.glowRadius} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="glowRadius" class="ygui-input" min="0" max="6" step="0.1"
                     bind:value={globals.glowRadius} on:input={onInputChange} />
             </td>
@@ -168,6 +174,8 @@
                 <label for="tintopacity" class="ygui-label"> - Opacity</label>
             </td>
             <td>
+                <input type="range" min="0" max="100" step="1" disabled={!globals.colorize} bind:value={globals.tintopacity}
+                    on:input={onInputChange} style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="tintopacity" class="ygui-input" min="0" max="100" step="1" disabled={!globals.colorize}
                     bind:value={globals.tintopacity} on:input={onInputChange} />
             </td>
@@ -177,6 +185,8 @@
                 <label for="brightness" class="ygui-label">Brightness</label>
             </td>
             <td>
+                <input type="range" min="0" max="200" step="1" bind:value={globals.brightness} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="brightness" class="ygui-input" min="0" max="200" step="1"
                     bind:value={globals.brightness} on:input={onInputChange} />
             </td>
@@ -186,6 +196,8 @@
                 <label for="saturation" class="ygui-label">Saturation</label>
             </td>
             <td>
+                <input type="range" min="0" max="100" step="1" bind:value={globals.saturation} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="saturation" class="ygui-input" min="0" max="100" step="1"
                     bind:value={globals.saturation} on:input={onInputChange} />
             </td>
@@ -195,6 +207,8 @@
                 <label for="hue" class="ygui-label">Hue Shift</label>
             </td>
             <td>
+                <input type="range" min="-180" max="180" step="1" bind:value={globals.hue} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="hue" class="ygui-input" min="-180" max="180" step="1"
                     bind:value={globals.hue} on:input={onInputChange} />
             </td>
