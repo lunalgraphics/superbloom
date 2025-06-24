@@ -18,7 +18,7 @@
         hue: 0,
         tintopacity: 100,
         brightness: 100,
-        previewQuality: 1,
+        previewQuality: 0.75,
     };
 
     /** @type {HTMLCanvasElement} */
