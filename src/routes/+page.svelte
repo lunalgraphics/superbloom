@@ -4,6 +4,8 @@
     import { onMount } from "svelte";
     import plugin from "$lib/scripts/plugin.js";
     import isolateHighlights from "$lib/scripts/isolate-highlights.js";
+    import { page } from "$app/state";
+    import Photopea from "photopea";
 
     let globals = {
         threshold: 222,
@@ -130,8 +132,28 @@
         }
     }
 
-    onMount(() => {
-        //plugin();
+    let isPhotopeaPlugin = false;
+
+    /** @type {Photopea} */
+    let pea;
+
+    onMount(async () => {
+        if (page.url.searchParams.get("isPhotopeaPlugin") == "yessir") {
+            pea = new Photopea(window.parent);
+            isPhotopeaPlugin = true;
+
+            let blobber = await pea.exportImage("png");
+            
+            var img = new Image();
+            img.addEventListener("load", function() {
+                threshCanv.width = this.width;
+                threshCanv.height = this.height;
+                mainProcess(globals);
+                document.querySelector("#landingscreen").style.display = "none";
+            });
+            img.src = URL.createObjectURL(blobber);
+            globals.baseIMG = img;
+        }
     });
 </script>
 
@@ -249,12 +271,22 @@
 
     </table>
     <div id="exportpanel">
-        <button id="exportButton" on:click={() => {
-            mainProcess(globals, canvDownload, false);
-        }}>Export Full Image</button>
-        <button id="exportButtonLayer" on:click={() => {
-            mainProcess(globals, canvDownload, true);
-        }}>Export Bloom Layer</button>
+        {#if !isPhotopeaPlugin}
+            <button id="exportButton" on:click={() => {
+                mainProcess(globals, canvDownload, false);
+            }}>Export Full Image</button>
+            <button id="exportButtonLayer" on:click={() => {
+                mainProcess(globals, canvDownload, true);
+            }}>Export Bloom Layer</button>
+        {:else}
+            <button id="exportButton" on:click={() => {
+                mainProcess(globals, async function() {
+                    await pea.openFromURL(document.querySelectorAll("canvas")[1].toDataURL(), true);
+                    await pea.runScript(`app.activeDocument.activeLayer.blendMode = "scrn";`);
+                    await pea.runScript(`app.activeDocument.activeLayer.name = "SuperBloom";`);
+                }, true);
+            }}>Add to Document</button>
+        {/if}
     </div>
 </div>
 <div style="position: fixed; left: 0; top: 0; height: 100vh; width: calc(100vw - 250px); text-align: center;" id="previewSpace">
@@ -292,9 +324,11 @@
             
             <img src={bannerImg} alt="SuperBloom" width="512px" draggable="false" />
             <br />
-            <button id="uploadButton" on:click={() => {
-                imgUpload.click();
-            }}>Upload Image</button>
+            {#if !isPhotopeaPlugin}
+                <button id="uploadButton" on:click={() => {
+                    imgUpload.click();
+                }}>Upload Image</button>
+            {/if}
         </div>
         
         <div id="creditsbox">
