@@ -2,7 +2,6 @@
     import bannerImg from "$lib/assets/banner_plain.png";
     import coverartImg from "$lib/assets/coverart.jpg";
     import { onMount } from "svelte";
-    import plugin from "$lib/scripts/plugin.js";
     import isolateHighlights from "$lib/scripts/isolate-highlights.js";
     import { page } from "$app/state";
     import Photopea from "photopea";
