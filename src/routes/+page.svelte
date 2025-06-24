@@ -110,7 +110,7 @@
 
     function canvDownload() {
         var a = document.createElement("a");
-        a.href = document.querySelectorAll("canvas")[1].toDataURL();
+        a.href = finalCanv.toDataURL();
         a.download = globals.imgname + "-superbloomed.png";
         a.click();
         
@@ -137,6 +137,8 @@
     /** @type {Photopea} */
     let pea;
 
+    let landingScreenVisible = true;
+
     onMount(async () => {
         if (page.url.searchParams.get("isPhotopeaPlugin") == "yessir") {
             pea = new Photopea(window.parent);
@@ -149,7 +151,7 @@
                 threshCanv.width = this.width;
                 threshCanv.height = this.height;
                 mainProcess(globals);
-                document.querySelector("#landingscreen").style.display = "none";
+                landingScreenVisible = false;
             });
             img.src = URL.createObjectURL(blobber);
             globals.baseIMG = img;
@@ -281,7 +283,7 @@
         {:else}
             <button id="exportButton" on:click={() => {
                 mainProcess(globals, async function() {
-                    await pea.openFromURL(document.querySelectorAll("canvas")[1].toDataURL(), true);
+                    await pea.openFromURL(finalCanv.toDataURL(), true);
                     await pea.runScript(`app.activeDocument.activeLayer.blendMode = "scrn";`);
                     await pea.runScript(`app.activeDocument.activeLayer.name = "SuperBloom";`);
                 }, true);
@@ -298,46 +300,48 @@
 {#if loading}
     <div id="waitCover"></div>
 {/if}
-<div id="landingscreen">
-    <div style="position: absolute; width: 500px; right: 0; top: 0; height: 100vh;" id="lsRight">
-        <div class="centeredblock" style="text-align: center;">
-            <input type="file" accept="image/*"
-                bind:this={imgUpload} style:display="none"
-                on:change={() => {
-                    let file = imgUpload.files[0];
-                    let fR = new FileReader();
-                    fR.addEventListener("loadend", (e) => {
-                        let image = new Image();
-                        image.src = e.target.result;
-                        globals.baseIMG = image;
-                        image.addEventListener("load", function() {
-                            document.querySelector("canvas").width = this.width;
-                            document.querySelector("canvas").height = this.height;
-                            mainProcess(globals);
-                            document.querySelector("#landingscreen").style.display = "none";
+{#if landingScreenVisible}
+    <div id="landingscreen">
+        <div style="position: absolute; width: 500px; right: 0; top: 0; height: 100vh;" id="lsRight">
+            <div class="centeredblock" style="text-align: center;">
+                <input type="file" accept="image/*"
+                    bind:this={imgUpload} style:display="none"
+                    on:change={() => {
+                        let file = imgUpload.files[0];
+                        let fR = new FileReader();
+                        fR.addEventListener("loadend", (e) => {
+                            let image = new Image();
+                            image.src = e.target.result;
+                            globals.baseIMG = image;
+                            image.addEventListener("load", function() {
+                                threshCanv.width = this.width;
+                                threshCanv.height = this.height;
+                                mainProcess(globals);
+                                landingScreenVisible = false;
+                            });
                         });
-                    });
-                    fR.readAsDataURL(file);
-                    
-                    globals.imgname = file.name.split(".").slice(0, -1).join(".");
-                }} />
+                        fR.readAsDataURL(file);
+                        
+                        globals.imgname = file.name.split(".").slice(0, -1).join(".");
+                    }} />
+                
+                <img src={bannerImg} alt="SuperBloom" width="512px" draggable="false" />
+                <br />
+                {#if !isPhotopeaPlugin}
+                    <button id="uploadButton" on:click={() => {
+                        imgUpload.click();
+                    }}>Upload Image</button>
+                {/if}
+            </div>
             
-            <img src={bannerImg} alt="SuperBloom" width="512px" draggable="false" />
-            <br />
-            {#if !isPhotopeaPlugin}
-                <button id="uploadButton" on:click={() => {
-                    imgUpload.click();
-                }}>Upload Image</button>
-            {/if}
+            <div id="creditsbox">
+                Copyright (c) 2022 Lunal Graphics<br />
+                Developed by Yikuan Sun
+            </div>
         </div>
-        
-        <div id="creditsbox">
-            Copyright (c) 2022 Lunal Graphics<br />
-            Developed by Yikuan Sun
-        </div>
+        <div style="position: absolute; width: calc(100vw - 500px); left: 0; top: 0; height: 100vh; background-image: url('{coverartImg}'); background-size: cover; background-position: center;"></div>
     </div>
-    <div style="position: absolute; width: calc(100vw - 500px); left: 0; top: 0; height: 100vh; background-image: url('{coverartImg}'); background-size: cover; background-position: center;"></div>
-</div>
+{/if}
 
 <style>
     :global(:root) {
