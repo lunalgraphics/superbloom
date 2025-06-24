@@ -24,7 +24,9 @@
     /** @type {HTMLCanvasElement} */
     let threshCanv;
     /** @type {HTMLCanvasElement} */
-    let finalCanv;
+    let glowCanv;
+    /** @type {HTMLCanvasElement} */
+    let compCanv;
 
     let loading = false;
 
@@ -57,9 +59,9 @@
             ctx.fillRect(0, 0, threshCanv.width, threshCanv.height);
         }
         
-        finalCanv.width = threshCanv.width;
-        finalCanv.height = threshCanv.height;
-        var ctx2 = finalCanv.getContext("2d");
+        glowCanv.width = threshCanv.width;
+        glowCanv.height = threshCanv.height;
+        var ctx2 = glowCanv.getContext("2d");
 
         for (var i = 1; i < inputData.glowLayers; i++) {
             var blurRadius = (i + 1) ** 2 * inputData.glowRadius;
@@ -76,10 +78,17 @@
             return;
         }
 
-        ctx2.restore();
-        ctx2.save();
-        ctx2.globalCompositeOperation = "screen";
-        ctx2.drawImage(inputData.baseIMG, 0, 0);
+        compCanv.width = threshCanv.width;
+        compCanv.height = threshCanv.height;
+        let ctx3 = compCanv.getContext("2d");
+        ctx3.restore();
+        ctx3.save();
+        ctx3.clearRect(0, 0, compCanv.width, compCanv.height);
+        ctx3.drawImage(inputData.baseIMG, 0, 0);
+        ctx3.globalCompositeOperation = "screen";
+        ctx3.drawImage(glowCanv, 0, 0);
+        ctx3.restore();
+        ctx3.save();
 
         callback();
         loading = false;
@@ -88,48 +97,18 @@
 
     function onInputChange() {
         if (globals.showPreview == "Full") mainProcess(globals);
-        else if (globals.showPreview == "Glow Only") mainProcess(globals, function() {  }, true);
-        else {
-            mainProcess({
-                baseIMG: globals.baseIMG,
-                threshold: 255,
-                glowLayers: 0,
-                glowRadius: 0,
-                colorize: false,
-                tintcolor: "#000000",
-                saturation: 100,
-                hue: 0,
-                tintopacity: 100,
-                brightness: 100,
-            });
-        }
+        else if (globals.showPreview == "Glow Only") mainProcess(globals, () => {  }, true);
     }
 
     /** @type {HTMLInputElement} */
     let imgUpload;
 
-    function canvDownload() {
+    function canvDownload(layerOnly=true) {
         var a = document.createElement("a");
-        a.href = finalCanv.toDataURL();
+        if (layerOnly) a.href = glowCanv.toDataURL();
+        else a.href = compCanv.toDataURL();
         a.download = globals.imgname + "-superbloomed.png";
         a.click();
-        
-        if (globals.showPreview == "Full") mainProcess(globals);
-        else if (globals.showPreview == "Glow Only") mainProcess(globals, function() {  }, true);
-        else {
-            mainProcess({
-                baseIMG: globals.baseIMG,
-                threshold: 255,
-                glowLayers: 0,
-                glowRadius: 0,
-                colorize: false,
-                tintcolor: "#000000",
-                saturation: 100,
-                hue: 0,
-                tintopacity: 100,
-                brightness: 100,
-            });
-        }
     }
 
     let isPhotopeaPlugin = false;
@@ -275,15 +254,15 @@
     <div id="exportpanel">
         {#if !isPhotopeaPlugin}
             <button id="exportButton" on:click={() => {
-                mainProcess(globals, canvDownload, false);
+                mainProcess(globals, () => { canvDownload(false); }, false);
             }}>Export Full Image</button>
             <button id="exportButtonLayer" on:click={() => {
-                mainProcess(globals, canvDownload, true);
+                mainProcess(globals, () => { canvDownload(true); }, true);
             }}>Export Bloom Layer</button>
         {:else}
             <button id="exportButton" on:click={() => {
                 mainProcess(globals, async function() {
-                    await pea.openFromURL(finalCanv.toDataURL(), true);
+                    await pea.openFromURL(glowCanv.toDataURL(), true);
                     await pea.runScript(`app.activeDocument.activeLayer.blendMode = "scrn";`);
                     await pea.runScript(`app.activeDocument.activeLayer.name = "SuperBloom";`);
                 }, true);
@@ -293,8 +272,12 @@
 </div>
 <div style="position: fixed; left: 0; top: 0; height: 100vh; width: calc(100vw - 250px); text-align: center;" id="previewSpace">
     <div class="centeredblock">
+        {#if globals.baseIMG && globals.showPreview == "None"}
+            <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" style:display="block" />
+        {/if}
         <canvas bind:this={threshCanv} style:display="none"></canvas>
-        <canvas bind:this={finalCanv}></canvas>
+        <canvas bind:this={glowCanv} style:display={globals.showPreview == "Glow Only" ? "block" : "none"}></canvas>
+        <canvas bind:this={compCanv} style:display={globals.showPreview == "Full" ? "block" : "none"}></canvas>
     </div>
 </div>
 {#if loading}
@@ -370,7 +353,7 @@
         position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     }
 
-    canvas {
+    canvas, img#baseImage {
         max-width: calc(100vw - 300px);
         max-height: calc(100vh - 50px);
     }
@@ -493,7 +476,7 @@
             width: 100vw!important;
             height: 70vh!important;
         }
-        canvas {
+        canvas, img#baseImage {
             max-width: calc(100vw - 50px)!important;
             max-height: calc(70vh - 50px)!important;
         }
