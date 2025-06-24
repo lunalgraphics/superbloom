@@ -18,6 +18,7 @@
         hue: 0,
         tintopacity: 100,
         brightness: 100,
+        previewQuality: 1,
     };
 
     /** @type {HTMLCanvasElement} */
@@ -34,10 +35,13 @@
         if (typeof inputData == "string") {
             inputData = JSON.parse(inputData);
         }
+
+        threshCanv.width = inputData.baseIMG.width * inputData.previewQuality;
+        threshCanv.height = inputData.baseIMG.height * inputData.previewQuality;
         
         var ctx = threshCanv.getContext("2d");
         ctx.restore();
-        ctx.drawImage(inputData.baseIMG, 0, 0);
+        ctx.drawImage(inputData.baseIMG, 0, 0, threshCanv.width, threshCanv.height);
         ctx.save();
 
         if (inputData.threshold < 255) {
@@ -63,7 +67,7 @@
         var ctx2 = glowCanv.getContext("2d");
 
         for (var i = 1; i < inputData.glowLayers; i++) {
-            var blurRadius = (i + 1) ** 2 * inputData.glowRadius;
+            var blurRadius = (i + 1) ** 2 * inputData.glowRadius * inputData.previewQuality;
             ctx2.restore();
             ctx2.save();
             ctx2.filter = `brightness(${inputData.brightness}%) hue-rotate(${inputData.hue}deg) saturate(${inputData.saturation}%) blur(${blurRadius}px)`;
@@ -83,9 +87,9 @@
         ctx3.restore();
         ctx3.save();
         ctx3.clearRect(0, 0, compCanv.width, compCanv.height);
-        ctx3.drawImage(inputData.baseIMG, 0, 0);
+        ctx3.drawImage(inputData.baseIMG, 0, 0, compCanv.width, compCanv.height);
         ctx3.globalCompositeOperation = "screen";
-        ctx3.drawImage(glowCanv, 0, 0);
+        ctx3.drawImage(glowCanv, 0, 0, compCanv.width, compCanv.height);
         ctx3.restore();
         ctx3.save();
 
@@ -236,8 +240,11 @@
             </td>
         </tr>
         <tr>
+            <td colspan="2"><span class="ygui-label">Preview</span></td>
+        </tr>
+        <tr>
             <td>
-                <label for="showPreview" class="ygui-label">Preview</label>
+                <label for="showPreview" class="ygui-label"> - Mode</label>
             </td>
             <td>
                 <select id="showPreview" class="ygui-input" type="select"
@@ -248,7 +255,17 @@
                 </select>
             </td>
         </tr>
-
+        <tr>
+            <td>
+                <label for="showPreview" class="ygui-label"> - Quality</label>
+            </td>
+            <td>
+                <input type="range" min="0.1" max="1" step="0.01" bind:value={globals.previewQuality} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
+                <input type="number" id="hue" class="ygui-input" min="0.1" max="1" step="0.01"
+                    bind:value={globals.previewQuality} on:input={onInputChange} />
+            </td>
+        </tr>
     </table>
     <div id="exportpanel">
         {#if !isPhotopeaPlugin}
@@ -269,15 +286,14 @@
         {/if}
     </div>
 </div>
-<div style="position: fixed; left: 0; top: 0; height: 100vh; width: calc(100vw - 250px); text-align: center;" id="previewSpace">
-    <div class="centeredblock">
-        {#if globals.baseIMG && globals.showPreview == "None"}
-            <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" style:display="block" />
-        {/if}
-        <canvas bind:this={threshCanv} style:display="none"></canvas>
-        <canvas bind:this={glowCanv} style:display={globals.showPreview == "Glow Only" ? "block" : "none"}></canvas>
-        <canvas bind:this={compCanv} style:display={globals.showPreview == "Full" ? "block" : "none"}></canvas>
-    </div>
+<div style="position: fixed; left: 0; top: 0; height: 100vh; width: calc(100vw - 250px); text-align: center;" id="previewSpace"
+    style:display="flex" style:justify-content="center" style:align-items="center" style:padding="25px" style:box-sizing="border-box">
+    {#if globals.baseIMG && globals.showPreview == "None"}
+        <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" style:display="block" />
+    {/if}
+    <canvas bind:this={threshCanv} style:display="none"></canvas>
+    <canvas bind:this={glowCanv} style:display={globals.showPreview == "Glow Only" ? "block" : "none"}></canvas>
+    <canvas bind:this={compCanv} style:display={globals.showPreview == "Full" ? "block" : "none"}></canvas>
 </div>
 {#if loading}
     <div id="waitCover"></div>
@@ -353,8 +369,9 @@
     }
 
     canvas, img#baseImage {
-        max-width: calc(100vw - 300px);
-        max-height: calc(100vh - 50px);
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
 
     #guicontainer {
@@ -471,10 +488,6 @@
         #previewSpace {
             width: 100vw!important;
             height: 70vh!important;
-        }
-        canvas, img#baseImage {
-            max-width: calc(100vw - 50px)!important;
-            max-height: calc(70vh - 50px)!important;
         }
     }
 </style>
