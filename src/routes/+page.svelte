@@ -266,17 +266,30 @@
     <div id="exportpanel">
         {#if !isPhotopeaPlugin}
             <button id="exportButton" on:click={() => {
-                mainProcess(globals, () => { canvDownload(false); }, false);
+                let previewQualityTemp = globals.previewQuality;
+                globals.previewQuality = 1;
+                mainProcess(globals, () => {
+                    canvDownload(false);
+                    globals.previewQuality = previewQualityTemp;
+                }, false);
             }}>Export Full Image</button>
             <button id="exportButtonLayer" on:click={() => {
-                mainProcess(globals, () => { canvDownload(true); }, true);
+                let previewQualityTemp = globals.previewQuality;
+                globals.previewQuality = 1;
+                mainProcess(globals, () => {
+                    canvDownload(true);
+                    globals.previewQuality = previewQualityTemp;
+                }, true);
             }}>Export Bloom Layer</button>
         {:else}
             <button id="exportButton" on:click={() => {
+                let previewQualityTemp = globals.previewQuality;
+                globals.previewQuality = 1;
                 mainProcess(globals, async function() {
                     await pea.openFromURL(glowCanv.toDataURL(), true);
                     await pea.runScript(`app.activeDocument.activeLayer.blendMode = "scrn";`);
                     await pea.runScript(`app.activeDocument.activeLayer.name = "SuperBloom";`);
+                    globals.previewQuality = previewQualityTemp;
                 }, true);
             }}>Add to Document</button>
         {/if}
