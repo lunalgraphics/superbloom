@@ -367,10 +367,11 @@
         padding: 6.9px;
     }
 
-    :global(#exportpanel) {
+    #exportpanel {
         width: 100%;
         box-sizing: border-box;
         text-align: center;
+        padding-top: 15px;
     }
 
     #waitCover {
@@ -383,7 +384,7 @@
         z-index: 100;
     }
 
-    :global(.ygui-input) {
+    .ygui-input {
         background-color: var(--field-color);
         border: 0;
         outline: none!important;
@@ -395,22 +396,22 @@
         font-family: var(--ux-font);
     }
 
-    :global(select.ygui-input) {
+    select.ygui-input {
         width: auto!important;
         text-align: left;
     }
 
-    :global(.ygui-label) {
+    .ygui-label {
         color: whitesmoke;
         font-family: var(--ux-font);
         white-space: pre;
     }
 
-    :global(.ygui-table tr td:nth-of-type(2)) {
+    .ygui-table tr td:nth-of-type(2) {
         text-align: right;
     }
 
-    :global(button) {
+    button {
         font-family: var(--ux-font);
         color: whitesmoke;
         background-color: var(--special-color);
@@ -425,12 +426,8 @@
         font-size: 12.3px;
     }
 
-    :global(button:hover) {
+    button:hover {
         background-color: #4B0057;
-    }
-
-    :global(#exportpanel) {
-        padding-top: 15px;
     }
 
     #creditsbox {
