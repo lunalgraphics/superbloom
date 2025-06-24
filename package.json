@@ -16,6 +16,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@sveltejs/adapter-static": "^3.0.8",
 		"photopea": "^1.1.1"
 	}
 }
