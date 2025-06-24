@@ -28,10 +28,8 @@
     /** @type {HTMLCanvasElement} */
     let compCanv;
 
-    let loading = false;
 
     function mainProcess(inputData=globals, callback=() => {}, layerOnly=false) {
-        loading = true;
         if (typeof inputData == "string") {
             inputData = JSON.parse(inputData);
         }
@@ -77,7 +75,6 @@
 
         if (layerOnly) {
             callback();
-            loading = false;
             return;
         }
 
@@ -94,7 +91,6 @@
         ctx3.save();
 
         callback();
-        loading = false;
         
     }
 
@@ -295,9 +291,6 @@
     <canvas bind:this={glowCanv} style:display={globals.showPreview == "Glow Only" ? "block" : "none"}></canvas>
     <canvas bind:this={compCanv} style:display={globals.showPreview == "Full" ? "block" : "none"}></canvas>
 </div>
-{#if loading}
-    <div id="waitCover"></div>
-{/if}
 {#if landingScreenVisible}
     <div id="landingscreen">
         <div style="position: absolute; width: 500px; right: 0; top: 0; height: 100vh;" id="lsRight">
@@ -389,16 +382,6 @@
         box-sizing: border-box;
         text-align: center;
         padding-top: 15px;
-    }
-
-    #waitCover {
-        cursor: wait;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 100;
     }
 
     .ygui-input {
