@@ -246,9 +246,9 @@
                 <label for="anamorph" class="ygui-label">Anamorph</label>
             </td>
             <td>
-                <input type="range" min="0" max="10" step="0.1" bind:value={globals.anamorph} on:input={onInputChange}
+                <input type="range" min="0" max="10" step="0.5" bind:value={globals.anamorph} on:input={onInputChange}
                     style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
-                <input type="number" id="anamorph" class="ygui-input" min="0" max="10" step="0.1"
+                <input type="number" id="anamorph" class="ygui-input" min="0" max="10" step="0.5"
                     bind:value={globals.anamorph} on:input={onInputChange} />
             </td>
         </tr>
