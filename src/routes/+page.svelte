@@ -270,12 +270,12 @@
         </tr>
         <tr>
             <td>
-                <label for="showPreview" class="ygui-label"> - Quality</label>
+                <label for="previewQuality" class="ygui-label"> - Quality</label>
             </td>
             <td>
                 <input type="range" min="0.1" max="1" step="0.01" bind:value={globals.previewQuality} on:input={onInputChange}
                     style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
-                <input type="number" id="hue" class="ygui-input" min="0.1" max="1" step="0.01"
+                <input type="number" id="previewQuality" class="ygui-input" min="0.1" max="1" step="0.01"
                     bind:value={globals.previewQuality} on:input={onInputChange} />
             </td>
         </tr>
