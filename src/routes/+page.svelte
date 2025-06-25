@@ -346,9 +346,9 @@
                         globals.imgname = file.name.split(".").slice(0, -1).join(".");
                     }} />
                 
-                <div style:position="relative" style:width="512px" style:height="100px">
+                <div style:position="relative" style:width="calc(min(512px, 100vw))" style:height="100px">
                     {#each new Array(6).fill(0) as _, i}
-                        <img src={bannerImg} alt="SuperBloom" width="512px" draggable="false"
+                        <img src={bannerImg} alt="SuperBloom" width="100%" draggable="false"
                             style:position="absolute" style:top="0" style:left="0"
                             style:filter="blur({(i) ** 2 * 3}px)" style:mix-blend-mode="screen" />
                     {/each}
@@ -485,9 +485,6 @@
     @media only screen and (max-width: 500px) {
         #lsRight {
             width: 100vw!important;
-        }
-        #lsRight img {
-            width: 100vw;
         }
         
         #guicontainer {
