@@ -346,7 +346,13 @@
                         globals.imgname = file.name.split(".").slice(0, -1).join(".");
                     }} />
                 
-                <img src={bannerImg} alt="SuperBloom" width="512px" draggable="false" />
+                <div style:position="relative" style:width="512px" style:height="100px">
+                    {#each new Array(6).fill(0) as _, i}
+                        <img src={bannerImg} alt="SuperBloom" width="512px" draggable="false"
+                            style:position="absolute" style:top="0" style:left="0"
+                            style:filter="blur({(i) ** 2 * 3}px)" style:mix-blend-mode="screen" />
+                    {/each}
+                </div>
                 <br />
                 {#if !isPhotopeaPlugin}
                     <button id="uploadButton" on:click={() => {
