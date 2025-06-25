@@ -162,9 +162,9 @@
                 <label for="glowLayers" class="ygui-label">Depth</label>
             </td>
             <td>
-                <input type="range" min="1" max="30" step="1" bind:value={globals.glowLayers} on:input={onInputChange}
+                <input type="range" min="1" max="24" step="1" bind:value={globals.glowLayers} on:input={onInputChange}
                     style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
-                <input type="number" id="glowLayers" class="ygui-input" min="1" max="30" step="1"
+                <input type="number" id="glowLayers" class="ygui-input" min="1" max="24" step="1"
                     bind:value={globals.glowLayers} on:input={onInputChange} />
             </td>
         </tr>
@@ -173,9 +173,9 @@
                 <label for="glowRadius" class="ygui-label">Radius</label>
             </td>
             <td>
-                <input type="range" min="0" max="6" step="0.1" bind:value={globals.glowRadius} on:input={onInputChange}
+                <input type="range" min="0" max="12" step="0.1" bind:value={globals.glowRadius} on:input={onInputChange}
                     style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
-                <input type="number" id="glowRadius" class="ygui-input" min="0" max="6" step="0.1"
+                <input type="number" id="glowRadius" class="ygui-input" min="0" max="12" step="0.1"
                     bind:value={globals.glowRadius} on:input={onInputChange} />
             </td>
         </tr>
