@@ -19,6 +19,7 @@
         tintopacity: 100,
         brightness: 100,
         previewQuality: 0.75,
+        anamorph: 0,
     };
 
     /** @type {HTMLCanvasElement} */
@@ -63,6 +64,8 @@
         glowCanv.width = threshCanv.width;
         glowCanv.height = threshCanv.height;
         var ctx2 = glowCanv.getContext("2d");
+        ctx2.clearRect(0, 0, glowCanv.width, glowCanv.height);
+        ctx2.save();
 
         for (var i = 1; i < inputData.glowLayers; i++) {
             var blurRadius = (i + 1) ** 2 * inputData.glowRadius * inputData.previewQuality;
@@ -70,8 +73,11 @@
             ctx2.save();
             ctx2.filter = `brightness(${inputData.brightness}%) hue-rotate(${inputData.hue}deg) saturate(${inputData.saturation}%) blur(${blurRadius}px)`;
             ctx2.globalCompositeOperation = "screen";
-            ctx2.drawImage(threshCanv, 0, 0);
+            ctx2.drawImage(threshCanv, 0, 0, glowCanv.width / (inputData.anamorph + 1), glowCanv.height);
         }
+        
+        ctx2.restore();
+        ctx2.drawImage(glowCanv, 0, 0, glowCanv.width * (inputData.anamorph + 1), glowCanv.height);
 
         if (layerOnly) {
             callback();
@@ -233,6 +239,17 @@
                     style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="hue" class="ygui-input" min="-180" max="180" step="1"
                     bind:value={globals.hue} on:input={onInputChange} />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="anamorph" class="ygui-label">Anamorph</label>
+            </td>
+            <td>
+                <input type="range" min="0" max="10" step="0.1" bind:value={globals.anamorph} on:input={onInputChange}
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
+                <input type="number" id="anamorph" class="ygui-input" min="0" max="10" step="0.1"
+                    bind:value={globals.anamorph} on:input={onInputChange} />
             </td>
         </tr>
         <tr>
