@@ -405,6 +405,7 @@
         top: 0;
         height: 100vh;
         padding: 6.9px;
+        padding-bottom: 0;
     }
 
     #exportpanel {
@@ -412,6 +413,10 @@
         box-sizing: border-box;
         text-align: center;
         padding-top: 15px;
+        position: sticky;
+        bottom: 0;
+        background-color: var(--bg-color);
+        padding-bottom: 6.9px;
     }
 
     .ygui-input {
