@@ -433,7 +433,7 @@
             </div>
             
             <div id="creditsbox">
-                Copyright (c) 2022 Lunal Graphics<br />
+                Copyright (c) 2025 Lunal Graphics<br />
                 Developed by Yikuan Sun
             </div>
         </div>
