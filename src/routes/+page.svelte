@@ -7,6 +7,10 @@
     import Photopea from "photopea";
 
     import defaultPreset from "$lib/presets/default.json?raw";
+    import softHazePreset from "$lib/presets/soft-haze.json?raw";
+    import jediPreset from "$lib/presets/jedi.json?raw";
+    import cinematicPreset from "$lib/presets/cinematic.json?raw";
+    import sunsetPreset from "$lib/presets/sunset.json?raw";
 
     let globals = {
         threshold: 222,
@@ -198,6 +202,10 @@
             <option value="IMPORT_FROM_COMPUTER">Import from Computer</option>
             <optgroup label="Built-in presets">
                 <option value={defaultPreset}>Default</option>
+                <option value={softHazePreset}>Soft Haze</option>
+                <option value={jediPreset}>Jedi</option>
+                <option value={cinematicPreset}>Cinematic</option>
+                <option value={sunsetPreset}>Sunset</option>
             </optgroup>
         </select>
         <br uh />
