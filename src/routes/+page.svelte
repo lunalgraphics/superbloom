@@ -6,6 +6,8 @@
     import { page } from "$app/state";
     import Photopea from "photopea";
 
+    import defaultPreset from "$lib/presets/default.json?raw";
+
     let globals = {
         threshold: 222,
         glowLayers: 16,
@@ -123,6 +125,32 @@
 
     let landingScreenVisible = true;
 
+    function exportPreset() {
+        let preset = Object.assign({}, globals);
+        delete preset.baseIMG;
+        delete preset.imgname;
+        delete preset.showPreview;
+        delete preset.previewQuality;
+
+        let blobber = new Blob([JSON.stringify(preset)], { type: "application/json" });
+
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blobber);
+        a.download = "superbloom-preset.json";
+        a.click();
+    }
+
+    function applyPreset(preset) {
+        if (typeof preset == "string") preset = JSON.parse(preset);
+        for (let key in preset) {
+            globals[key] = preset[key];
+        }
+        onInputChange();
+    }
+
+    /** @type {HTMLInputElement} */
+    let presetImport;
+
     onMount(async () => {
         if (page.url.searchParams.get("isPhotopeaPlugin") == "yessir") {
             pea = new Photopea(window.parent);
@@ -145,6 +173,41 @@
 
 
 <div id="guicontainer">
+    <div style:width="100%" style:padding-bottom="15px" style:text-align="center"
+        style:color="whitesmoke" style:font-family="var(--ux-font)">
+        <input bind:this={presetImport} type="file" accept="application/json" style:display="none"
+            on:change={() => {
+                let file = presetImport.files[0];
+                let fR = new FileReader();
+                fR.addEventListener("loadend", (e) => {
+                    applyPreset(e.target.result);
+                });
+                fR.readAsText(file);
+            }} />
+        <select class="ygui-input" style:width="calc(100% - 30px)" style:text-align="center" style:font-size="14px"
+            on:change={(e) => {
+                if (e.target.value == "IMPORT_FROM_COMPUTER") {
+                    presetImport.click();
+                }
+                else {
+                    applyPreset(e.target.value);
+                }
+                e.target.value = "nothing";
+            }}>
+            <option selected hidden value="nothing">Use a Preset</option>
+            <option value="IMPORT_FROM_COMPUTER">Import from Computer</option>
+            <optgroup label="Built-in presets">
+                <option value={defaultPreset}>Default</option>
+            </optgroup>
+        </select>
+        <br uh />
+        <button class="ygui-input" style:width="calc(100% - 30px)" style:text-align="center"
+            style:font-weight="400" style:text-transform="none" style:background-color="var(--field-color)!important"
+            style:border-radius="0" style:letter-spacing="0" style:font-size="14px"
+            style:cursor="pointer" on:click={exportPreset}>
+            Export Preset
+        </button>
+    </div>
     <table style:width="100%" class="ygui-table">
         <tr>
             <td>
@@ -438,7 +501,7 @@
     }
 
     select.ygui-input {
-        width: auto!important;
+        width: auto;
         text-align: left;
     }
 
