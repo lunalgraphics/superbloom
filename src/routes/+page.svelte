@@ -560,8 +560,8 @@
         
         #guicontainer {
             width: 100vw;
-            top: 70vh;
-            height: 30vh;
+            top: 50vh;
+            height: 50vh;
             overflow-y: scroll;
         }
         #guicontainer::-webkit-scrollbar {
@@ -579,7 +579,7 @@
         
         #previewSpace {
             width: 100vw!important;
-            height: 70vh!important;
+            height: 50vh!important;
         }
     }
 </style>
