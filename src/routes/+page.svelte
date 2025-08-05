@@ -122,7 +122,7 @@
         a.click();
     }
 
-    let isPhotopeaPlugin = false;
+    let isPhotopeaPlugin = false, isPhotoshopPlugin = false;
 
     /** @type {Photopea} */
     let pea;
@@ -171,6 +171,24 @@
             });
             img.src = URL.createObjectURL(blobber);
             globals.baseIMG = img;
+        }
+        else if (page.url.searchParams.get("isPhotoshopPlugin") == "yeah") {
+            isPhotoshopPlugin = true;
+            console.log("hi photoshop");
+            window.uxpHost.postMessage("webViewLoaded");
+
+            window.addEventListener("message", (e) => {
+                console.log(e);
+                let img = new Image();
+                img.addEventListener("load", function() {
+                    threshCanv.width = this.width;
+                    threshCanv.height = this.height;
+                    mainProcess(globals);
+                    landingScreenVisible = false;
+                });
+                img.src = e.data;
+                globals.baseIMG = img;
+            });
         }
     });
 </script>
