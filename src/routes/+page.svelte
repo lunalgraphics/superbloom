@@ -175,20 +175,28 @@
         else if (page.url.searchParams.get("isPhotoshopPlugin") == "yeah") {
             isPhotoshopPlugin = true;
             console.log("hi photoshop");
-            window.uxpHost.postMessage("webViewLoaded");
 
             window.addEventListener("message", (e) => {
+                if (typeof e.data == "string") e.data = JSON.parse(e.data);
                 console.log(e);
-                let img = new Image();
-                img.addEventListener("load", function() {
-                    threshCanv.width = this.width;
-                    threshCanv.height = this.height;
-                    mainProcess(globals);
-                    landingScreenVisible = false;
-                });
-                img.src = e.data;
-                globals.baseIMG = img;
+                if (e.data.type == "sourceImage") {
+                    let img = new Image();
+                    img.addEventListener("load", function() {
+                        threshCanv.width = this.width;
+                        threshCanv.height = this.height;
+                        mainProcess(globals);
+                        landingScreenVisible = false;
+                    });
+                    img.src = e.data.data;
+                    globals.baseIMG = img;
+                }
             });
+
+            window.uxpHost.postMessage({
+                type: "webViewLoaded",
+                data: true,
+            });
+            console.log("webview loaded");
         }
     });
 </script>
