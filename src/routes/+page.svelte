@@ -378,7 +378,7 @@
         </tr>
     </table>
     <div id="exportpanel">
-        {#if !isPhotopeaPlugin}
+        {#if !isPhotopeaPlugin && !isPhotoshopPlugin}
             <button id="exportButton" on:click={() => {
                 let previewQualityTemp = globals.previewQuality;
                 globals.previewQuality = 1;
@@ -395,7 +395,7 @@
                     globals.previewQuality = previewQualityTemp;
                 }, true);
             }}>Export Bloom Layer</button>
-        {:else}
+        {:else if isPhotopeaPlugin}
             <button id="exportButton" on:click={() => {
                 let previewQualityTemp = globals.previewQuality;
                 globals.previewQuality = 1;
@@ -403,6 +403,18 @@
                     await pea.openFromURL(glowCanv.toDataURL(), true);
                     await pea.runScript(`app.activeDocument.activeLayer.blendMode = "scrn";`);
                     await pea.runScript(`app.activeDocument.activeLayer.name = "SuperBloom";`);
+                    globals.previewQuality = previewQualityTemp;
+                }, true);
+            }}>Add to Document</button>
+        {:else if isPhotoshopPlugin}
+            <button id="exportButton" on:click={() => {
+                let previewQualityTemp = globals.previewQuality;
+                globals.previewQuality = 1;
+                mainProcess(globals, async function() {
+                    window.uxpHost.postMessage({
+                        type: "exportLayer",
+                        data: glowCanv.toDataURL(),
+                    });
                     globals.previewQuality = previewQualityTemp;
                 }, true);
             }}>Add to Document</button>
@@ -451,7 +463,7 @@
                     {/each}
                 </div>
                 <br />
-                {#if !isPhotopeaPlugin}
+                {#if !isPhotopeaPlugin && !isPhotoshopPlugin}
                     <button id="uploadButton" on:click={() => {
                         imgUpload.click();
                     }}>Upload Image</button>
