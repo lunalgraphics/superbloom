@@ -420,7 +420,11 @@
                     });
                     globals.previewQuality = previewQualityTemp;
                 }, true);
-            }}>Add to Document</button>
+
+                let style = new CSSStyleSheet();
+                style.insertRule("* { cursor: wait !important; }");
+                document.adoptedStyleSheets = [...document.adoptedStyleSheets, style];
+            }}>Finish</button>
         {/if}
     </div>
 </div>
