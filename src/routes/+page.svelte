@@ -411,9 +411,10 @@
                 let previewQualityTemp = globals.previewQuality;
                 globals.previewQuality = 1;
                 mainProcess(globals, async function() {
+                    let imageData = glowCanv.getContext("2d").getImageData(0, 0, glowCanv.width, glowCanv.height);
                     window.uxpHost.postMessage({
                         type: "exportLayer",
-                        data: glowCanv.toDataURL(),
+                        data: Array.from(imageData.data),
                     });
                     globals.previewQuality = previewQualityTemp;
                 }, true);
