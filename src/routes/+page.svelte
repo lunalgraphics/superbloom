@@ -12,6 +12,8 @@
     import cinematicPreset from "$lib/presets/cinematic.json?raw";
     import sunsetPreset from "$lib/presets/sunset.json?raw";
 
+    import { fly } from "svelte/transition";
+
     let globals = {
         threshold: 222,
         glowLayers: 16,
@@ -432,7 +434,7 @@
     <canvas bind:this={compCanv} style:display={globals.showPreview == "Full" ? "block" : "none"}></canvas>
 </div>
 {#if landingScreenVisible}
-    <div id="landingscreen">
+    <div id="landingscreen" out:fly={{ duration: 800, y: -window?.innerHeight, opacity: 1, }}>
         <div style="position: absolute; width: 500px; right: 0; top: 0; height: 100vh;" id="lsRight">
             <div class="centeredblock" style="text-align: center;">
                 <input type="file" accept="image/*"
@@ -468,6 +470,11 @@
                     <button id="uploadButton" on:click={() => {
                         imgUpload.click();
                     }}>Upload Image</button>
+                {:else if isPhotoshopPlugin}
+                    <div style:width="42px" style:height="42px" style:border-radius="100%"
+                        style:border="4px solid grey" style:border-top-color="deepskyblue"
+                        style:animation="spin 1s linear infinite" style:margin="8px"
+                        style:display="inline-block"></div>
                 {/if}
             </div>
             
@@ -620,6 +627,11 @@
             width: 100vw!important;
             height: 50vh!important;
         }
+    }
+
+    @keyframes -global-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 
