@@ -438,7 +438,7 @@
     <canvas bind:this={compCanv} style:display={globals.showPreview == "Full" ? "block" : "none"}></canvas>
 </div>
 {#if landingScreenVisible}
-    <div id="landingscreen" out:fly={{ duration: 800, y: -window?.innerHeight, opacity: 1, }}>
+    <div id="landingscreen">
         <div style="position: absolute; width: 500px; right: 0; top: 0; height: 100vh;" id="lsRight">
             <div class="centeredblock" style="text-align: center;">
                 <input type="file" accept="image/*"
