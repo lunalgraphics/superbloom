@@ -556,11 +556,50 @@
         text-align: right;
         accent-color: var(--special-color);
         font-family: var(--ux-font);
+        vertical-align: middle;
     }
 
     select.ygui-input {
         width: auto;
         text-align: left;
+    }
+
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        vertical-align: middle;
+        border-radius: 2px;
+        background-color: #393939;
+        outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 100%;
+        background-color: var(--special-color);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+        filter: brightness(1.5);
+        cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 100%;
+        background-color: var(--special-color);
+        outline: none;
+        border: 0;
+    }
+
+    input[type="range"]::-moz-range-thumb:hover {
+        filter: brightness(1.5);
+        cursor: pointer;
     }
 
     .ygui-label {
