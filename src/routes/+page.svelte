@@ -131,14 +131,17 @@
 
     let landingScreenVisible = true;
 
-    function exportPreset() {
+    function getPresetData() {
         let preset = Object.assign({}, globals);
         delete preset.baseIMG;
         delete preset.imgname;
         delete preset.showPreview;
         delete preset.previewQuality;
+        return JSON.stringify(preset);
+    }
 
-        let blobber = new Blob([JSON.stringify(preset)], { type: "application/json" });
+    function exportPreset() {
+        let blobber = new Blob([getPresetData()], { type: "application/json" });
 
         let a = document.createElement("a");
         a.href = URL.createObjectURL(blobber);
@@ -417,6 +420,7 @@
                     window.uxpHost.postMessage({
                         type: "exportLayer",
                         data: Array.from(imageData.data),
+                        metadata: getPresetData(),
                     });
                     globals.previewQuality = previewQualityTemp;
                 }, true);
