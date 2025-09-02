@@ -26,7 +26,7 @@
         hue: 0,
         tintopacity: 100,
         brightness: 100,
-        previewQuality: 0.75,
+        previewQuality: 0.45,
         anamorph: 0,
     };
 
