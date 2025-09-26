@@ -20,7 +20,8 @@
         glowRadius: 1,
         colorize: false,
         tintcolor: "#FF5500",
-        showPreview: "Full",
+        showPreview: true,
+        previewMode: "Full",
         imgname: "",
         saturation: 100,
         hue: 0,
@@ -109,8 +110,8 @@
     }
 
     function onInputChange() {
-        if (globals.showPreview == "Full") mainProcess(globals);
-        else if (globals.showPreview == "Glow Only") mainProcess(globals, () => {  }, true);
+        if (globals.showPreview && globals.previewMode == "Full") mainProcess(globals);
+        else if (globals.showPreview && globals.previewMode == "Glow Only") mainProcess(globals, () => {  }, true);
     }
 
     /** @type {HTMLInputElement} */
@@ -136,6 +137,7 @@
         delete preset.baseIMG;
         delete preset.imgname;
         delete preset.showPreview;
+        delete preset.previewMode;
         delete preset.previewQuality;
         return JSON.stringify(preset);
     }
@@ -355,17 +357,20 @@
             </td>
         </tr>
         <tr>
-            <td colspan="2"><span class="ygui-label">Preview</span></td>
+            <td><span class="ygui-label">Preview</span></td>
+            <td>
+                <input type="checkbox" id="showPreview" class="ygui-input"
+                    bind:checked={globals.showPreview} on:change={onInputChange} />
+            </td>
         </tr>
         <tr>
             <td>
-                <label for="showPreview" class="ygui-label"> - Mode</label>
+                <label for="previewMode" class="ygui-label"> - Mode</label>
             </td>
             <td>
-                <select id="showPreview" class="ygui-input" type="select"
-                    bind:value={globals.showPreview} on:change={onInputChange}>
+                <select id="previewMode" class="ygui-input" type="select"
+                    bind:value={globals.previewMode} on:change={onInputChange}>
                     <option value="Full">Full</option>
-                    <option value="None">None</option>
                     <option value="Glow Only">Glow Only</option>
                 </select>
             </td>
@@ -434,12 +439,12 @@
 </div>
 <div style="position: fixed; left: 0; top: 0; height: 100vh; width: calc(100vw - 250px); text-align: center;" id="previewSpace"
     style:display="flex" style:justify-content="center" style:align-items="center" style:padding="25px" style:box-sizing="border-box">
-    {#if globals.baseIMG && globals.showPreview == "None"}
+    {#if globals.baseIMG && !globals.showPreview}
         <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" style:display="block" />
     {/if}
     <canvas bind:this={threshCanv} style:display="none"></canvas>
-    <canvas bind:this={glowCanv} style:display={globals.showPreview == "Glow Only" ? "block" : "none"}></canvas>
-    <canvas bind:this={compCanv} style:display={globals.showPreview == "Full" ? "block" : "none"}></canvas>
+    <canvas bind:this={glowCanv} style:display={(globals.showPreview && globals.previewMode == "Glow Only") ? "block" : "none"}></canvas>
+    <canvas bind:this={compCanv} style:display={(globals.showPreview && globals.previewMode == "Full") ? "block" : "none"}></canvas>
 </div>
 {#if landingScreenVisible}
     <div id="landingscreen">
