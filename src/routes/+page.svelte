@@ -197,6 +197,9 @@
                     img.src = e.data.data;
                     globals.baseIMG = img;
                 }
+                else if (e.data.type === "preset") {
+                    applyPreset(e.data.data);
+                }
             });
 
             window.uxpHost.postMessage({
