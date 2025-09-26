@@ -363,27 +363,27 @@
                     bind:checked={globals.showPreview} on:change={onInputChange} />
             </td>
         </tr>
-        <tr>
+        <tr style:opacity={globals.showPreview ? "1" : "0.5"}>
             <td>
                 <label for="previewMode" class="ygui-label"> - Mode</label>
             </td>
             <td>
-                <select id="previewMode" class="ygui-input" type="select"
+                <select id="previewMode" class="ygui-input" type="select" disabled={!globals.showPreview}
                     bind:value={globals.previewMode} on:change={onInputChange}>
                     <option value="Full">Full</option>
                     <option value="Glow Only">Glow Only</option>
                 </select>
             </td>
         </tr>
-        <tr>
+        <tr style:opacity={globals.showPreview ? "1" : "0.5"}>
             <td>
                 <label for="previewQuality" class="ygui-label"> - Quality</label>
             </td>
             <td>
                 <input type="range" min="0.1" max="1" step="0.01" bind:value={globals.previewQuality} on:input={onInputChange}
-                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
+                    style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" disabled={!globals.showPreview} />
                 <input type="number" id="previewQuality" class="ygui-input" min="0.1" max="1" step="0.01"
-                    bind:value={globals.previewQuality} on:input={onInputChange} />
+                    bind:value={globals.previewQuality} on:input={onInputChange} disabled={!globals.showPreview} />
             </td>
         </tr>
     </table>
