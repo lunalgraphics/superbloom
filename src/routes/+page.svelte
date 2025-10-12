@@ -112,6 +112,7 @@
     function onInputChange() {
         if (globals.showPreview && globals.previewMode == "Full") mainProcess(globals);
         else if (globals.showPreview && globals.previewMode == "Glow Only") mainProcess(globals, () => {  }, true);
+        else if (globals.showPreview && globals.previewMode == "Mask") mainProcess(globals, () => {  }, true);
     }
 
     /** @type {HTMLInputElement} */
@@ -375,6 +376,7 @@
                     bind:value={globals.previewMode} on:change={onInputChange}>
                     <option value="Full">Full</option>
                     <option value="Glow Only">Glow Only</option>
+                    <option value="Mask">Mask</option>
                 </select>
             </td>
         </tr>
@@ -445,7 +447,7 @@
     {#if globals.baseIMG && !globals.showPreview}
         <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" style:display="block" />
     {/if}
-    <canvas bind:this={threshCanv} style:display="none"></canvas>
+    <canvas bind:this={threshCanv} style:display={(globals.showPreview && globals.previewMode == "Mask") ? "block" : "none"}></canvas>
     <canvas bind:this={glowCanv} style:display={(globals.showPreview && globals.previewMode == "Glow Only") ? "block" : "none"}></canvas>
     <canvas bind:this={compCanv} style:display={(globals.showPreview && globals.previewMode == "Full") ? "block" : "none"}></canvas>
 </div>
