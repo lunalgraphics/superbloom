@@ -2,7 +2,8 @@
     import bannerImg from "$lib/assets/banner_plain.png";
     import coverartImg from "$lib/assets/coverart.jpg";
     import { onMount } from "svelte";
-    import isolateHighlights from "$lib/scripts/isolate-highlights.js";
+    import isolateHighlights from "$lib/scripts/isolate-highlights-gpu.js";
+    import WebGLRenderer from "$lib/webgl-renderer.js";
     import { page } from "$app/state";
     import Photopea from "photopea";
 
@@ -38,12 +39,164 @@
     /** @type {HTMLCanvasElement} */
     let compCanv;
 
+    // GPU acceleration
+    let webglRenderer = null;
+    let useGPUAcceleration = true;
+    let processingTime = 0;
+    let webglCanvas = null;
+
 
     function mainProcess(inputData=globals, callback=() => {}, layerOnly=false) {
         if (typeof inputData == "string") {
             inputData = JSON.parse(inputData);
         }
 
+        // Try GPU acceleration first
+        if (useGPUAcceleration) {
+            try {
+                return mainProcessGPU(inputData, callback, layerOnly);
+            } catch (error) {
+                console.warn('GPU acceleration failed, falling back to CPU:', error.message);
+                console.warn('Error details:', error);
+                useGPUAcceleration = false;
+                // Clean up failed WebGL renderer
+                if (webglRenderer) {
+                    webglRenderer.cleanup();
+                    webglRenderer = null;
+                }
+            }
+        }
+
+        // Fallback to CPU processing
+        return mainProcessCPU(inputData, callback, layerOnly);
+    }
+
+    function mainProcessGPU(inputData, callback, layerOnly) {
+        const startTime = performance.now();
+        
+        // Initialize WebGL renderer if needed
+        if (!webglRenderer) {
+            console.log('Initializing WebGL renderer...');
+            
+            // Create a dedicated WebGL canvas (offscreen)
+            if (!webglCanvas) {
+                webglCanvas = document.createElement('canvas');
+            }
+            
+            webglRenderer = new WebGLRenderer();
+            try {
+                webglRenderer.init(webglCanvas);
+                console.log('WebGL renderer initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize WebGL renderer:', error.message);
+                throw error;
+            }
+        }
+
+        // Validate input data
+        if (!inputData.baseIMG || !inputData.baseIMG.width || !inputData.baseIMG.height) {
+            throw new Error('Invalid input image data');
+        }
+
+        // Set canvas dimensions
+        const width = Math.floor(inputData.baseIMG.width * inputData.previewQuality);
+        const height = Math.floor(inputData.baseIMG.height * inputData.previewQuality);
+        
+        if (width <= 0 || height <= 0) {
+            throw new Error('Invalid canvas dimensions');
+        }
+        
+        console.log(`GPU processing: ${width}x${height} (quality: ${inputData.previewQuality})`);
+        
+        // Set WebGL canvas size
+        webglCanvas.width = width;
+        webglCanvas.height = height;
+        
+        // Set display canvas dimensions
+        threshCanv.width = width;
+        threshCanv.height = height;
+        glowCanv.width = width;
+        glowCanv.height = height;
+        compCanv.width = width;
+        compCanv.height = height;
+
+        // Process using GPU
+        webglRenderer.process(inputData, () => {
+            try {
+                // Copy GPU results back to canvases for display
+                copyGPUResultsToCanvases(width, height);
+                
+                processingTime = performance.now() - startTime;
+                console.log(`GPU processing completed in ${processingTime.toFixed(2)}ms`);
+                
+                callback();
+            } catch (error) {
+                console.error('Failed to copy GPU results:', error.message);
+                throw error;
+            }
+        });
+    }
+
+    function copyGPUResultsToCanvases(width, height) {
+        try {
+            // Copy threshold result
+            const thresholdData = webglRenderer.getImageData('threshold');
+            if (thresholdData && thresholdData.data) {
+                const ctx = threshCanv.getContext('2d');
+                const clampedArray = new Uint8ClampedArray(thresholdData.data);
+                const imageData = new ImageData(clampedArray, width, height);
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            // Copy glow result
+            const glowData = webglRenderer.getImageData('glow');
+            if (glowData && glowData.data) {
+                const ctx2 = glowCanv.getContext('2d');
+                const clampedArray = new Uint8ClampedArray(glowData.data);
+                const imageData = new ImageData(clampedArray, width, height);
+                ctx2.putImageData(imageData, 0, 0);
+            }
+
+            // Copy composite result to 2D canvas
+            const compositeData = webglRenderer.getImageData('composite');
+            if (compositeData && compositeData.data) {
+                // Ensure we can get a 2D context (reset canvas if needed)
+                const ctx3 = compCanv.getContext('2d');
+                if (ctx3) {
+                    const clampedArray = new Uint8ClampedArray(compositeData.data);
+                    const imageData = new ImageData(clampedArray, width, height);
+                    ctx3.putImageData(imageData, 0, 0);
+                } else {
+                    console.warn('Cannot get 2D context for compCanv, creating new canvas element');
+                    // If we can't get 2D context, the canvas was used for WebGL
+                    // We need to replace it or use a different approach
+                    const newCanvas = document.createElement('canvas');
+                    newCanvas.width = width;
+                    newCanvas.height = height;
+                    const newCtx = newCanvas.getContext('2d');
+                    const clampedArray = new Uint8ClampedArray(compositeData.data);
+                    const imageData = new ImageData(clampedArray, width, height);
+                    newCtx.putImageData(imageData, 0, 0);
+                    
+                    // Replace the canvas content by copying from the new canvas
+                    compCanv.width = width;
+                    compCanv.height = height;
+                    const ctx = compCanv.getContext('2d');
+                    if (ctx) {
+                        ctx.drawImage(newCanvas, 0, 0);
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error copying GPU results to canvases:', error.message);
+            throw error;
+        }
+    }
+
+    function mainProcessCPU(inputData, callback, layerOnly) {
+        const startTime = performance.now();
+        
         threshCanv.width = inputData.baseIMG.width * inputData.previewQuality;
         threshCanv.height = inputData.baseIMG.height * inputData.previewQuality;
         
@@ -89,6 +242,8 @@
         ctx2.drawImage(glowCanv, 0, 0, glowCanv.width * (inputData.anamorph + 1), glowCanv.height);
 
         if (layerOnly) {
+            processingTime = performance.now() - startTime;
+            console.log(`CPU processing completed in ${processingTime.toFixed(2)}ms`);
             callback();
             return;
         }
@@ -105,8 +260,9 @@
         ctx3.restore();
         ctx3.save();
 
+        processingTime = performance.now() - startTime;
+        console.log(`CPU processing completed in ${processingTime.toFixed(2)}ms`);
         callback();
-        
     }
 
     function onInputChange() {
@@ -358,6 +514,15 @@
                     style:accent-color="var(--special-color)" style:width="69px" style:margin-right="5px" />
                 <input type="number" id="anamorph" class="ygui-input" min="0" max="10" step="0.5"
                     bind:value={globals.anamorph} on:input={onInputChange} />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="useGPU" class="ygui-label">GPU Acceleration</label>
+            </td>
+            <td>
+                <input type="checkbox" id="useGPU" class="ygui-input"
+                    bind:checked={useGPUAcceleration} on:change={onInputChange} />
             </td>
         </tr>
         <tr>
