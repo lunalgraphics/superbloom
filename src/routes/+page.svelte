@@ -126,7 +126,7 @@
         a.click();
     }
 
-    let isPhotopeaPlugin = false, isPhotoshopPlugin = false;
+    let isPhotopeaPlugin = false, isPhotoshopPlugin = __IS_PHOTOSHOP_PLUGIN__;
 
     /** @type {Photopea} */
     let pea;
@@ -180,8 +180,7 @@
             img.src = URL.createObjectURL(blobber);
             globals.baseIMG = img;
         }
-        else if (page.url.searchParams.get("isPhotoshopPlugin") == "yeah") {
-            isPhotoshopPlugin = true;
+        else if (isPhotoshopPlugin) {
             console.log("hi photoshop");
 
             window.addEventListener("message", (e) => {

@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"build:photoshop": "vite build --mode photoshop",
 		"preview": "vite preview"
 	},
 	"devDependencies": {
