@@ -200,7 +200,7 @@ async function getLayerMetadata() {
 
         // Extract the preset JSON from the text layer content
         let presetData = textLayer.textItem.contents;
-        presetData = presetData.replaceAll("\u201C", '"'); // Replace smart quotes
+        presetData = presetData.replaceAll("\u201C", '"').replaceAll("\u201D", '"'); // Replace smart quotes
 
         await app.activeDocument.close(constants.SaveOptions.DONOTSAVECHANGES);
         layer.visible = false;
