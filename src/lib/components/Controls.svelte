@@ -36,7 +36,7 @@
                 });
                 fR.readAsText(file);
             }} />
-        <select class="ygui-input" style:width="calc(100% - 30px)" style:text-align="center" style:font-size="14px"
+        <select class="ygui-input" style:width="calc(100% - 30px)" style:text-align="center" style:font-size="14px" style:margin-bottom="5px"
             on:change={(e) => {
                 if (e.target.value === "IMPORT_FROM_COMPUTER") {
                     presetImport.click();
@@ -56,7 +56,7 @@
             </optgroup>
         </select>
         <br />
-        <button class="ygui-input preset-export-btn"
+        <button class="preset-export-btn"
             on:click={() => exportPreset(globals)}>
             Export Preset
         </button>
@@ -197,11 +197,15 @@
         text-align: center;
         font-weight: 400;
         text-transform: none;
-        background-color: var(--field-color) !important;
+        background-color: var(--field-color);
+        border: 0;
         border-radius: 0;
         letter-spacing: 0;
         font-size: 14px;
         cursor: pointer;
+        color: whitesmoke;
+        padding: 4px;
+        font-family: var(--ux-font);
     }
 
     .ygui-input {

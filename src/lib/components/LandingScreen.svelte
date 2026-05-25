@@ -119,6 +119,25 @@
         }
     }
 
+    button {
+        font-family: var(--ux-font);
+        color: whitesmoke;
+        background-color: var(--special-color);
+        border: 0;
+        border-radius: 3.4px;
+        padding: 8px 16px;
+        margin: 5px;
+        transition: background-color 0.2s;
+        text-transform: uppercase;
+        font-weight: 650;
+        letter-spacing: 0.650px;
+        font-size: 12.3px;
+    }
+
+    button:hover {
+        background-color: #4B0057;
+    }
+
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
