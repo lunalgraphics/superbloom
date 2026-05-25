@@ -22,3 +22,6 @@ vite.config.ts.timestamp-*
 
 .npmrc
 build
+
+# LLM Output
+COMPLAINTS.md

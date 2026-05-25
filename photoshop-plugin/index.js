@@ -66,7 +66,7 @@ window.addEventListener("message", (e) => {
 
             // Convert both layers into a single Smart Object
             app.activeDocument.activeLayers = [glowLayer, textLayer];
-            action.batchPlay([
+            await action.batchPlay([
                 {
                     _obj: "newPlacedLayer",
                     _isCommand: true,

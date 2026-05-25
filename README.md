@@ -111,12 +111,17 @@ Presets are JSON files that store effect parameters. Built-in presets live in `s
 src/
 ├── lib/
 │   ├── assets/          # Banner, cover art, icon
+│   ├── bloom.js         # Core bloom rendering pipeline
+│   ├── presets.js       # Preset serialization and validation
+│   ├── components/
+│   │   ├── Controls.svelte      # Effect parameter UI panel
+│   │   └── LandingScreen.svelte # Upload / loading splash screen
 │   ├── presets/         # Built-in preset JSON files
 │   └── scripts/
-│       └── isolate-highlights.js   # Core highlight extraction algorithm
+│       └── isolate-highlights.js   # Pixel-level highlight extraction
 ├── routes/
 │   ├── +layout.js       # Enables prerendering
-│   └── +page.svelte     # Main application UI and logic
+│   └── +page.svelte     # App shell (wires components + platform logic)
 photoshop-plugin/
 ├── index.html           # UXP panel markup
 ├── index.js             # UXP host logic (pixel transfer, Smart Object creation)
