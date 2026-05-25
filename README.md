@@ -72,7 +72,17 @@ npm run preview
 
 ### As a Photoshop Plugin
 
-The app communicates with the Photoshop UXP host via `postMessage`. Build with `npm run build:photoshop` and load the plugin through Photoshop's UXP Developer Tool.
+Requires Adobe Photoshop 2022 (v23.3+) and the [UXP Developer Tool](https://developer.adobe.com/photoshop/uxp/2022/guides/devtool/installation/).
+
+1. Build the plugin UI: `npm run build:photoshop`
+2. Open the UXP Developer Tool
+3. Click **Add Plugin** and select `photoshop-plugin/manifest.json`
+4. Click **Load** — the SuperBloom panel appears under **Plugins → SuperBloom**
+5. Open a document, click **New SuperBloom Layer**, adjust settings, and click **Finish**
+
+The bloom is inserted as a Smart Object with Screen blending. You can re-edit it later by selecting the layer and clicking **Edit Selected Layer**.
+
+See [`photoshop-plugin/README.md`](photoshop-plugin/README.md) for full architecture details.
 
 ## Presets
 
@@ -107,6 +117,12 @@ src/
 ├── routes/
 │   ├── +layout.js       # Enables prerendering
 │   └── +page.svelte     # Main application UI and logic
+photoshop-plugin/
+├── index.html           # UXP panel markup
+├── index.js             # UXP host logic (pixel transfer, Smart Object creation)
+├── manifest.json        # UXP plugin manifest
+├── icons/               # Plugin icons
+└── plugin-data/         # (generated) SvelteKit build for the webview
 static/                  # Favicon, plugin icon
 ```
 
