@@ -1,6 +1,6 @@
 import adapter from '@sveltejs/adapter-static';
 
-const outDir = process.env.npm_lifecycle_script?.includes('--mode photoshop') ? 'photoshop-plugin/plugin-data' : 'build';
+const outDir = process.env.npm_lifecycle_script?.includes('--mode photoshop') ? 'photoshop-plugin/webview-contents' : 'build';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

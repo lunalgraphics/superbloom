@@ -142,7 +142,7 @@ async function openModal(preset) {
             },
         });
         modalVisible = true;
-        webView.src = "plugin:/plugin-data/index.html?isPhotoshopPlugin=yeah";
+        webView.src = "plugin:/webview-contents/index.html?isPhotoshopPlugin=yeah";
 
         // Encode the pixel data as base64 JPEG and send to the webview
         let b64 = await imaging.encodeImageData({ imageData: imageData, base64: true });

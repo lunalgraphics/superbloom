@@ -9,7 +9,7 @@ The plugin opens a panel in Photoshop with two actions:
 - **New SuperBloom Layer** — flattens the active document into a temporary copy, sends the pixel data to a webview running the SuperBloom UI, and inserts the resulting bloom as a Smart Object layer with Screen blending.
 - **Edit Selected Layer** — re-opens a previously created SuperBloom Smart Object so you can tweak the settings non-destructively.
 
-The webview loads a static build of the main SuperBloom SvelteKit app (the `plugin-data/` folder). Communication between the UXP host and the webview happens via `postMessage`.
+The webview loads a static build of the main SuperBloom SvelteKit app (the `webview-contents/` folder). Communication between the UXP host and the webview happens via `postMessage`.
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ npm install
 npm run build:photoshop
 ```
 
-This outputs the SvelteKit static build to `photoshop-plugin/plugin-data/`. The Vite build sets the `__IS_PHOTOSHOP_PLUGIN__` flag so the UI uses the Photoshop communication path.
+This outputs the SvelteKit static build to `photoshop-plugin/webview-contents/`. The Vite build sets the `__IS_PHOTOSHOP_PLUGIN__` flag so the UI uses the Photoshop communication path.
 
 ## Loading the Plugin
 
@@ -47,14 +47,14 @@ photoshop-plugin/
 │   ├── icon@2x.png
 │   ├── icon@4x.png
 │   └── publisher/      # Marketplace publisher icons
-└── plugin-data/        # (generated) SvelteKit build output loaded by the webview
+└── webview-contents/    # (generated) SvelteKit build output loaded by the webview
 ```
 
 ## Architecture Notes
 
 - The plugin stores preset metadata inside a hidden text layer within the Smart Object. This allows "Edit Selected Layer" to recover the original settings.
 - The webview runs the same SuperBloom UI as the standalone app, but exports raw pixel data back to the host instead of downloading a file.
-- `plugin-data/` is a build artifact and should not be committed to version control. Run `npm run build:photoshop` to regenerate it.
+- `webview-contents/` is a build artifact and should not be committed to version control. Run `npm run build:photoshop` to regenerate it.
 
 ## Permissions
 

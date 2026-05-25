@@ -47,7 +47,7 @@ npm run build
 npm run build:photoshop
 ```
 
-The standalone build outputs to `build/`. The Photoshop build outputs to `plugin-data/`.
+The standalone build outputs to `build/`. The Photoshop build outputs to `webview-contents/`.
 
 ### Preview production build
 
@@ -127,7 +127,7 @@ photoshop-plugin/
 ├── index.js             # UXP host logic (pixel transfer, Smart Object creation)
 ├── manifest.json        # UXP plugin manifest
 ├── icons/               # Plugin icons
-└── plugin-data/         # (generated) SvelteKit build for the webview
+└── webview-contents/    # (generated) SvelteKit build for the webview
 static/                  # Favicon, plugin icon
 ```
 
