@@ -68,6 +68,10 @@
             process();
             landingScreenVisible = false;
         });
+        img.addEventListener("error", function () {
+            alert("Failed to load image. The file may be corrupt or unsupported.");
+            globals.baseIMG = null;
+        });
     }
 
     let isPhotopeaPlugin = false;
