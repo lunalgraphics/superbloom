@@ -85,13 +85,20 @@ window.addEventListener("message", (e) => {
 
 /**
  * Returns a promise that resolves once the webview signals it has loaded.
+ * Rejects if the webview doesn't respond within the timeout period.
+ *
+ * @param {number} [timeoutMs=10000] - Maximum time to wait in milliseconds
  */
-async function waitForWebViewLoaded() {
-    return new Promise((resolve) => {
+async function waitForWebViewLoaded(timeoutMs = 10000) {
+    return new Promise((resolve, reject) => {
+        const start = Date.now();
         let interval = setInterval(() => {
             if (webViewLoaded) {
                 clearInterval(interval);
                 resolve();
+            } else if (Date.now() - start > timeoutMs) {
+                clearInterval(interval);
+                reject(new Error("Webview failed to load within " + (timeoutMs / 1000) + " seconds."));
             }
         }, 100);
     });
