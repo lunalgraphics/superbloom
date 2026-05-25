@@ -1,38 +1,119 @@
-# create-svelte
+# SuperBloom
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+A real-time bloom/glow effect tool for images. Works as a standalone web app, a Photopea plugin, or a Photoshop plugin.
 
-## Creating a project
+<!-- TODO: Add a screenshot or GIF demo here -->
+<!-- ![SuperBloom demo](docs/demo.gif) -->
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
+
+- **Threshold-based highlight isolation** — extracts the brightest parts of an image to use as a glow source
+- **Layered bloom** — stacks multiple blur passes with screen blending for a natural, cinematic glow
+- **Full control** — adjust threshold, depth, radius, brightness, saturation, hue shift, colorization, and anamorphic stretch
+- **Presets** — built-in presets (Soft Haze, Jedi, Cinematic, Sunset) plus import/export of custom presets
+- **Live preview** — see changes in real time with adjustable preview quality
+- **Multi-platform** — runs standalone in the browser, as a Photopea plugin, or as a Photoshop plugin
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) 18+
+- npm (comes with Node.js)
+
+### Installation
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+git clone https://github.com/lunalgraphics/superbloom.git
+cd superbloom
+npm install
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Development
 
 ```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+Opens a dev server at `http://localhost:5173`.
 
-To create a production version of your app:
+### Build
 
 ```bash
+# Standalone web app
 npm run build
+
+# Photoshop plugin variant
+npm run build:photoshop
 ```
 
-You can preview the production build with `npm run preview`.
+The standalone build outputs to `build/`. The Photoshop build outputs to `plugin-data/`.
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+### Preview production build
+
+```bash
+npm run preview
+```
+
+## Usage
+
+### Standalone
+
+1. Open the app in your browser
+2. Click **Upload Image** to load a photo
+3. Adjust the controls in the right panel
+4. Click **Export Full Image** or **Export Bloom Layer**
+
+### As a Photopea Plugin
+
+1. In Photopea, go to **More → Plugins → SuperBloom**
+2. The active document is loaded automatically
+3. Adjust settings and click **Add to Document** to insert the bloom as a new layer
+
+### As a Photoshop Plugin
+
+The app communicates with the Photoshop UXP host via `postMessage`. Build with `npm run build:photoshop` and load the plugin through Photoshop's UXP Developer Tool.
+
+## Presets
+
+Presets are JSON files that store effect parameters. Built-in presets live in `src/lib/presets/`. You can export your current settings as a preset file and import presets from disk.
+
+### Preset format
+
+```json
+{
+  "threshold": 222,
+  "glowLayers": 16,
+  "glowRadius": 1,
+  "colorize": false,
+  "tintcolor": "#FF5500",
+  "saturation": 100,
+  "hue": 0,
+  "tintopacity": 100,
+  "brightness": 100,
+  "anamorph": 0
+}
+```
+
+## Project Structure
+
+```
+src/
+├── lib/
+│   ├── assets/          # Banner, cover art, icon
+│   ├── presets/         # Built-in preset JSON files
+│   └── scripts/
+│       └── isolate-highlights.js   # Core highlight extraction algorithm
+├── routes/
+│   ├── +layout.js       # Enables prerendering
+│   └── +page.svelte     # Main application UI and logic
+static/                  # Favicon, plugin icon
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.
+
+## License
+
+[MIT](LICENSE.md) © Yikuan Sun
