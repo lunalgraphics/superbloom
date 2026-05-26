@@ -36,12 +36,17 @@
         renderBloom(globals, threshCanv, glowCanv, compCanv, options);
     }
 
+    let debounceTimer;
+
     function onInputChange() {
-        if (globals.showPreview && globals.previewMode === "Full") {
-            process();
-        } else if (globals.showPreview) {
-            process({ skipComposite: true });
-        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            if (globals.showPreview && globals.previewMode === "Full") {
+                process();
+            } else if (globals.showPreview) {
+                process({ skipComposite: true });
+            }
+        }, 30);
     }
 
     function applyPreset(raw) {
