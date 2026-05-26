@@ -82,6 +82,17 @@
 
     let landingScreenVisible = true;
 
+    let dragOver = false;
+
+    function handleDrop(e) {
+        e.preventDefault();
+        dragOver = false;
+        let file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+            handleFileUpload(file);
+        }
+    }
+
     function handleFileUpload(file) {
         let fR = new FileReader();
         fR.addEventListener("loadend", (e) => {
@@ -187,7 +198,16 @@
     </div>
 </Controls>
 
-<div id="previewSpace">
+<div id="previewSpace"
+    role="region"
+    aria-label="Image preview and drop zone"
+    on:dragover|preventDefault={() => dragOver = true}
+    on:dragleave={() => dragOver = false}
+    on:drop={handleDrop}
+    class:drag-over={dragOver}>
+    {#if dragOver}
+        <div class="drop-overlay">Drop image here</div>
+    {/if}
     {#if globals.baseIMG && !globals.showPreview}
         <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" />
     {/if}
@@ -200,7 +220,8 @@
     <LandingScreen
         isPhotoshopPlugin={isPhotoshopPlugin}
         isPlugin={isPhotopeaPlugin || isPhotoshopPlugin}
-        on:upload={(e) => handleFileUpload(e.detail)} />
+        on:upload={(e) => handleFileUpload(e.detail)}
+        on:drop={(e) => handleFileUpload(e.detail)} />
 {/if}
 
 <style>
@@ -228,6 +249,26 @@
         align-items: center;
         padding: 25px;
         box-sizing: border-box;
+    }
+
+    #previewSpace.drag-over {
+        outline: 3px dashed var(--special-color);
+        outline-offset: -3px;
+    }
+
+    .drop-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.7);
+        color: whitesmoke;
+        font-family: var(--ux-font);
+        font-size: 24px;
+        font-weight: 600;
+        z-index: 10;
+        pointer-events: none;
     }
 
     canvas, img#baseImage {
