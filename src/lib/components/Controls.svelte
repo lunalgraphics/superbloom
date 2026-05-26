@@ -63,7 +63,7 @@
     </div>
     <table style:width="100%" class="ygui-table">
         <tr>
-            <td><label for="threshold" class="ygui-label">Threshold</label></td>
+            <td><label for="threshold" class="ygui-label" title="Brightness cutoff — pixels above this value become the glow source">Threshold</label></td>
             <td style:width="143px">
                 <input type="range" min="0" max="254" step="1" bind:value={globals.threshold} on:input={onInputChange} />
                 <input type="number" id="threshold" class="ygui-input" min="0" max="254" step="1"
@@ -71,7 +71,7 @@
             </td>
         </tr>
         <tr>
-            <td><label for="glowLayers" class="ygui-label">Depth</label></td>
+            <td><label for="glowLayers" class="ygui-label" title="Number of blur passes — more layers produce a richer, more diffused glow">Depth</label></td>
             <td>
                 <input type="range" min="1" max="24" step="1" bind:value={globals.glowLayers} on:input={onInputChange} />
                 <input type="number" id="glowLayers" class="ygui-input" min="1" max="24" step="1"
@@ -79,7 +79,7 @@
             </td>
         </tr>
         <tr>
-            <td><label for="glowRadius" class="ygui-label">Radius</label></td>
+            <td><label for="glowRadius" class="ygui-label" title="How far the glow spreads from each highlight">Radius</label></td>
             <td>
                 <input type="range" min="0" max="12" step="0.1" bind:value={globals.glowRadius} on:input={onInputChange} />
                 <input type="number" id="glowRadius" class="ygui-input" min="0" max="12" step="0.1"
@@ -87,21 +87,21 @@
             </td>
         </tr>
         <tr>
-            <td><label for="colorize" class="ygui-label">Colorize?</label></td>
+            <td><label for="colorize" class="ygui-label" title="Tint the glow with a custom color">Colorize?</label></td>
             <td>
                 <input type="checkbox" id="colorize" class="ygui-input"
                     bind:checked={globals.colorize} on:change={onInputChange} />
             </td>
         </tr>
         <tr style:opacity={globals.colorize ? "1" : "0.5"}>
-            <td><label for="tintcolor" class="ygui-label"> - Color</label></td>
+            <td><label for="tintcolor" class="ygui-label" title="The color used to tint the glow"> - Color</label></td>
             <td>
                 <input type="color" id="tintcolor" class="ygui-input" disabled={!globals.colorize}
                     bind:value={globals.tintcolor} on:input={onInputChange} />
             </td>
         </tr>
         <tr style:opacity={globals.colorize ? "1" : "0.5"}>
-            <td><label for="tintopacity" class="ygui-label"> - Opacity</label></td>
+            <td><label for="tintopacity" class="ygui-label" title="Strength of the color tint"> - Opacity</label></td>
             <td>
                 <input type="range" min="0" max="100" step="1" disabled={!globals.colorize} bind:value={globals.tintopacity}
                     on:input={onInputChange} />
@@ -110,7 +110,7 @@
             </td>
         </tr>
         <tr>
-            <td><label for="brightness" class="ygui-label">Brightness</label></td>
+            <td><label for="brightness" class="ygui-label" title="Overall intensity of the glow effect">Brightness</label></td>
             <td>
                 <input type="range" min="0" max="200" step="1" bind:value={globals.brightness} on:input={onInputChange} />
                 <input type="number" id="brightness" class="ygui-input" min="0" max="200" step="1"
@@ -118,7 +118,7 @@
             </td>
         </tr>
         <tr>
-            <td><label for="saturation" class="ygui-label">Saturation</label></td>
+            <td><label for="saturation" class="ygui-label" title="Color intensity of the glow — 0 produces a white glow">Saturation</label></td>
             <td>
                 <input type="range" min="0" max="100" step="1" bind:value={globals.saturation} on:input={onInputChange} />
                 <input type="number" id="saturation" class="ygui-input" min="0" max="100" step="1"
@@ -126,7 +126,7 @@
             </td>
         </tr>
         <tr>
-            <td><label for="hue" class="ygui-label">Hue Shift</label></td>
+            <td><label for="hue" class="ygui-label" title="Rotate the color of the glow around the color wheel">Hue Shift</label></td>
             <td>
                 <input type="range" min="-180" max="180" step="1" bind:value={globals.hue} on:input={onInputChange} />
                 <input type="number" id="hue" class="ygui-input" min="-180" max="180" step="1"
@@ -134,7 +134,7 @@
             </td>
         </tr>
         <tr>
-            <td><label for="anamorph" class="ygui-label">Anamorph</label></td>
+            <td><label for="anamorph" class="ygui-label" title="Horizontal stretch that mimics anamorphic lens flares">Anamorph</label></td>
             <td>
                 <input type="range" min="0" max="10" step="0.5" bind:value={globals.anamorph} on:input={onInputChange} />
                 <input type="number" id="anamorph" class="ygui-input" min="0" max="10" step="0.5"
@@ -142,14 +142,14 @@
             </td>
         </tr>
         <tr>
-            <td><span class="ygui-label">Preview</span></td>
+            <td><span class="ygui-label" title="Toggle the live preview on or off">Preview</span></td>
             <td>
                 <input type="checkbox" id="showPreview" class="ygui-input"
                     bind:checked={globals.showPreview} on:change={onInputChange} />
             </td>
         </tr>
         <tr style:opacity={globals.showPreview ? "1" : "0.5"}>
-            <td><label for="previewMode" class="ygui-label"> - Mode</label></td>
+            <td><label for="previewMode" class="ygui-label" title="What to show — Full composite, Glow layer only, or the Threshold mask"> - Mode</label></td>
             <td>
                 <select id="previewMode" class="ygui-input" disabled={!globals.showPreview}
                     bind:value={globals.previewMode} on:change={onInputChange}>
@@ -160,7 +160,7 @@
             </td>
         </tr>
         <tr style:opacity={globals.showPreview ? "1" : "0.5"}>
-            <td><label for="previewQuality" class="ygui-label"> - Quality</label></td>
+            <td><label for="previewQuality" class="ygui-label" title="Resolution of the preview — lower is faster, 1.0 is full resolution"> - Quality</label></td>
             <td>
                 <input type="range" min="0.1" max="1" step="0.01" bind:value={globals.previewQuality} on:input={onInputChange}
                     disabled={!globals.showPreview} />
