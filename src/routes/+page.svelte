@@ -36,6 +36,51 @@
         renderBloom(globals, threshCanv, glowCanv, compCanv, options);
     }
 
+    // --- History (undo/redo) ---
+    // Snapshots store only the serializable effect parameters, not UI/runtime state.
+
+    const HISTORY_LIMIT = 50;
+    const EFFECT_KEYS = ["threshold","glowLayers","glowRadius","colorize","tintcolor",
+                         "saturation","hue","tintopacity","brightness","anamorph"];
+
+    function snapshotParams() {
+        let snap = {};
+        for (let key of EFFECT_KEYS) snap[key] = globals[key];
+        return snap;
+    }
+
+    function restoreSnapshot(snap) {
+        for (let key of EFFECT_KEYS) globals[key] = snap[key];
+        // Trigger Svelte reactivity
+        globals = globals;
+    }
+
+    let history = [snapshotParams()];
+    let historyIndex = 0;
+
+    /** Call after any committed change (mouseup, keyup, preset apply) to push a snapshot. */
+    function pushHistory() {
+        // Drop any redo states beyond current position
+        history = history.slice(0, historyIndex + 1);
+        history.push(snapshotParams());
+        if (history.length > HISTORY_LIMIT) history.shift();
+        historyIndex = history.length - 1;
+    }
+
+    function undo() {
+        if (historyIndex <= 0) return;
+        historyIndex--;
+        restoreSnapshot(history[historyIndex]);
+        onInputChange();
+    }
+
+    function redo() {
+        if (historyIndex >= history.length - 1) return;
+        historyIndex++;
+        restoreSnapshot(history[historyIndex]);
+        onInputChange();
+    }
+
     let debounceTimer;
 
     function onInputChange() {
@@ -54,6 +99,7 @@
         for (let key in preset) {
             globals[key] = preset[key];
         }
+        pushHistory();
         onInputChange();
     }
 
@@ -140,8 +186,32 @@
     });
 </script>
 
+<svelte:window on:keydown={(e) => {
+    // Keyboard shortcuts
+
+    // Only suppress shortcuts when the user is actively typing in a text-like input
+    const tag = e.target.tagName;
+    const type = e.target.type;
+    const isTyping = (tag === "TEXTAREA") ||
+                        (tag === "INPUT" && type !== "range" && type !== "checkbox" && type !== "radio");
+    if (isTyping) return;
+
+    if (e.code === "Space") {
+        e.preventDefault();
+        globals.showPreview = !globals.showPreview;
+        onInputChange();
+    } else if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault();
+        redo();
+    } else if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+    }
+}} />
+
 <Controls bind:globals
     on:change={onInputChange}
+    on:commit={pushHistory}
     on:preset={(e) => applyPreset(e.detail)}>
     <div slot="export-buttons" id="exportpanel">
         {#if !isPhotopeaPlugin && !isPhotoshopPlugin}

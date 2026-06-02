@@ -20,6 +20,10 @@
         dispatch("change");
     }
 
+    function onCommit() {
+        dispatch("commit");
+    }
+
     function onPresetSelected(preset) {
         dispatch("preset", preset);
     }
@@ -65,80 +69,80 @@
         <tr>
             <td><label for="threshold" class="ygui-label" title="Brightness cutoff — pixels above this value become the glow source">Threshold</label></td>
             <td style:width="143px">
-                <input type="range" min="0" max="254" step="1" bind:value={globals.threshold} on:input={onInputChange} />
+                <input type="range" min="0" max="254" step="1" bind:value={globals.threshold} on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="threshold" class="ygui-input" min="0" max="254" step="1"
-                    bind:value={globals.threshold} on:input={onInputChange} />
+                    bind:value={globals.threshold} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
             <td><label for="glowLayers" class="ygui-label" title="Number of blur passes — more layers produce a richer, more diffused glow">Depth</label></td>
             <td>
-                <input type="range" min="1" max="24" step="1" bind:value={globals.glowLayers} on:input={onInputChange} />
+                <input type="range" min="1" max="24" step="1" bind:value={globals.glowLayers} on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="glowLayers" class="ygui-input" min="1" max="24" step="1"
-                    bind:value={globals.glowLayers} on:input={onInputChange} />
+                    bind:value={globals.glowLayers} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
             <td><label for="glowRadius" class="ygui-label" title="How far the glow spreads from each highlight">Radius</label></td>
             <td>
-                <input type="range" min="0" max="12" step="0.1" bind:value={globals.glowRadius} on:input={onInputChange} />
+                <input type="range" min="0" max="12" step="0.1" bind:value={globals.glowRadius} on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="glowRadius" class="ygui-input" min="0" max="12" step="0.1"
-                    bind:value={globals.glowRadius} on:input={onInputChange} />
+                    bind:value={globals.glowRadius} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
             <td><label for="colorize" class="ygui-label" title="Tint the glow with a custom color">Colorize?</label></td>
             <td>
                 <input type="checkbox" id="colorize" class="ygui-input"
-                    bind:checked={globals.colorize} on:change={onInputChange} />
+                    bind:checked={globals.colorize} on:change={() => { onInputChange(); onCommit(); }} />
             </td>
         </tr>
         <tr style:opacity={globals.colorize ? "1" : "0.5"}>
             <td><label for="tintcolor" class="ygui-label" title="The color used to tint the glow"> - Color</label></td>
             <td>
                 <input type="color" id="tintcolor" class="ygui-input" disabled={!globals.colorize}
-                    bind:value={globals.tintcolor} on:input={onInputChange} />
+                    bind:value={globals.tintcolor} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr style:opacity={globals.colorize ? "1" : "0.5"}>
             <td><label for="tintopacity" class="ygui-label" title="Strength of the color tint"> - Opacity</label></td>
             <td>
                 <input type="range" min="0" max="100" step="1" disabled={!globals.colorize} bind:value={globals.tintopacity}
-                    on:input={onInputChange} />
+                    on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="tintopacity" class="ygui-input" min="0" max="100" step="1" disabled={!globals.colorize}
-                    bind:value={globals.tintopacity} on:input={onInputChange} />
+                    bind:value={globals.tintopacity} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
             <td><label for="brightness" class="ygui-label" title="Overall intensity of the glow effect">Brightness</label></td>
             <td>
-                <input type="range" min="0" max="200" step="1" bind:value={globals.brightness} on:input={onInputChange} />
+                <input type="range" min="0" max="200" step="1" bind:value={globals.brightness} on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="brightness" class="ygui-input" min="0" max="200" step="1"
-                    bind:value={globals.brightness} on:input={onInputChange} />
+                    bind:value={globals.brightness} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
             <td><label for="saturation" class="ygui-label" title="Color intensity of the glow — 0 produces a white glow">Saturation</label></td>
             <td>
-                <input type="range" min="0" max="100" step="1" bind:value={globals.saturation} on:input={onInputChange} />
+                <input type="range" min="0" max="100" step="1" bind:value={globals.saturation} on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="saturation" class="ygui-input" min="0" max="100" step="1"
-                    bind:value={globals.saturation} on:input={onInputChange} />
+                    bind:value={globals.saturation} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
             <td><label for="hue" class="ygui-label" title="Rotate the color of the glow around the color wheel">Hue Shift</label></td>
             <td>
-                <input type="range" min="-180" max="180" step="1" bind:value={globals.hue} on:input={onInputChange} />
+                <input type="range" min="-180" max="180" step="1" bind:value={globals.hue} on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="hue" class="ygui-input" min="-180" max="180" step="1"
-                    bind:value={globals.hue} on:input={onInputChange} />
+                    bind:value={globals.hue} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
             <td><label for="anamorph" class="ygui-label" title="Horizontal stretch that mimics anamorphic lens flares">Anamorph</label></td>
             <td>
-                <input type="range" min="0" max="10" step="0.5" bind:value={globals.anamorph} on:input={onInputChange} />
+                <input type="range" min="0" max="10" step="0.5" bind:value={globals.anamorph} on:input={onInputChange} on:mouseup={onCommit} />
                 <input type="number" id="anamorph" class="ygui-input" min="0" max="10" step="0.5"
-                    bind:value={globals.anamorph} on:input={onInputChange} />
+                    bind:value={globals.anamorph} on:input={onInputChange} on:change={onCommit} />
             </td>
         </tr>
         <tr>
