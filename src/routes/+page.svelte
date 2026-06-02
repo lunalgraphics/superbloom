@@ -108,6 +108,8 @@
         fR.readAsDataURL(file);
     }
 
+    let loadingCursor = false;
+
     onMount(async () => {
         if (page.url.searchParams.get("isPhotopeaPlugin") === "yessir") {
             pea = new Photopea(window.parent);
@@ -146,43 +148,50 @@
             <button on:click={() => {
                 let previewQualityTemp = globals.previewQuality;
                 globals.previewQuality = 1;
-                process({
+                loadingCursor = true;
+                requestAnimationFrame(() => process({
                     onComplete: () => {
                         canvDownload(false);
                         globals.previewQuality = previewQualityTemp;
+                        loadingCursor = false;
                     }
-                });
+                }));
             }}>Export Full Image</button>
             <button on:click={() => {
                 let previewQualityTemp = globals.previewQuality;
                 globals.previewQuality = 1;
-                process({
+                loadingCursor = true;
+                requestAnimationFrame(() => process({
                     skipComposite: true,
                     onComplete: () => {
                         canvDownload(true);
                         globals.previewQuality = previewQualityTemp;
+                        loadingCursor = false;
                     }
-                });
+                }));
             }}>Export Bloom Layer</button>
         {:else if isPhotopeaPlugin}
             <button on:click={() => {
                 let previewQualityTemp = globals.previewQuality;
                 globals.previewQuality = 1;
-                process({
+                loadingCursor = true;
+                requestAnimationFrame(() => process({
                     skipComposite: true,
                     onComplete: async () => {
                         await pea.openFromURL(glowCanv.toDataURL(), true);
                         await pea.runScript(`app.activeDocument.activeLayer.blendMode = "scrn";`);
                         await pea.runScript(`app.activeDocument.activeLayer.name = "SuperBloom";`);
                         globals.previewQuality = previewQualityTemp;
+                        loadingCursor = false;
                     }
-                });
+                }));
             }}>Add to Document</button>
         {:else if isPhotoshopPlugin}
             <button on:click={() => {
                 let previewQualityTemp = globals.previewQuality;
                 globals.previewQuality = 1;
-                process({
+                loadingCursor = true;
+                requestAnimationFrame(() => process({
                     skipComposite: true,
                     onComplete: () => {
                         let imageData = glowCanv.getContext("2d").getImageData(0, 0, glowCanv.width, glowCanv.height);
@@ -192,12 +201,9 @@
                             metadata: getPresetData(globals),
                         });
                         globals.previewQuality = previewQualityTemp;
+                        loadingCursor = false;
                     }
-                });
-
-                let style = new CSSStyleSheet();
-                style.insertRule("* { cursor: wait !important; }");
-                document.adoptedStyleSheets = [...document.adoptedStyleSheets, style];
+                }));
             }}>Finish</button>
         {/if}
     </div>
@@ -227,6 +233,14 @@
         isPlugin={isPhotopeaPlugin || isPhotoshopPlugin}
         on:upload={(e) => handleFileUpload(e.detail)}
         on:drop={(e) => handleFileUpload(e.detail)} />
+{/if}
+
+{#if loadingCursor}
+    <div style:position="fixed"
+        style:inset="0"
+        style:cursor="wait"
+        style:z-index="100"
+        style:pointer-events="all"></div>
 {/if}
 
 <style>
