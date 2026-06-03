@@ -156,6 +156,49 @@
 
     let loadingCursor = false;
 
+    // --- Resizable divider ---
+    // Separate states for horizontal (desktop) and vertical (mobile) resize.
+
+    const SIDEBAR_MIN = 180;
+    const SIDEBAR_MAX = 600;
+    const PANEL_MIN = 100; // min height for each panel in vertical/mobile mode
+
+    let sidebarWidth = 250;    // desktop: sidebar width in px
+    let splitHeight = 50;      // mobile: preview panel height as % of viewport
+
+    let isDraggingH = false;   // dragging horizontal divider
+    let isDraggingV = false;   // dragging vertical divider
+
+    function onDividerMousedownH(e) {
+        isDraggingH = true;
+        e.preventDefault();
+    }
+
+    function onDividerMousedownV(e) {
+        isDraggingV = true;
+        e.preventDefault();
+    }
+
+    function onMousemove(e) {
+        if (isDraggingH) {
+            // Sidebar is on the right; compute width from right edge
+            let newWidth = window.innerWidth - e.clientX;
+            sidebarWidth = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, newWidth));
+        }
+        if (isDraggingV) {
+            // Preview is on top; compute height as % of viewport
+            let pct = (e.clientY / window.innerHeight) * 100;
+            let minPct = (PANEL_MIN / window.innerHeight) * 100;
+            let maxPct = 100 - minPct;
+            splitHeight = Math.max(minPct, Math.min(maxPct, pct));
+        }
+    }
+
+    function onMouseup() {
+        isDraggingH = false;
+        isDraggingV = false;
+    }
+
     onMount(async () => {
         if (page.url.searchParams.get("isPhotopeaPlugin") === "yessir") {
             pea = new Photopea(window.parent);
@@ -186,34 +229,78 @@
     });
 </script>
 
-<svelte:window on:keydown={(e) => {
-    // Keyboard shortcuts
+<svelte:window
+    on:keydown={(e) => {
+        // Keyboard shortcuts
 
-    // Only suppress shortcuts when the user is actively typing in a text-like input
-    const tag = e.target.tagName;
-    const type = e.target.type;
-    const isTyping = (tag === "TEXTAREA") ||
-                        (tag === "INPUT" && type !== "range" && type !== "checkbox" && type !== "radio");
-    if (isTyping) return;
+        // Only suppress shortcuts when the user is actively typing in a text-like input
+        const tag = e.target.tagName;
+        const type = e.target.type;
+        const isTyping = (tag === "TEXTAREA") ||
+                            (tag === "INPUT" && type !== "range" && type !== "checkbox" && type !== "radio");
+        if (isTyping) return;
 
-    if (e.code === "Space") {
-        e.preventDefault();
-        globals.showPreview = !globals.showPreview;
-        onInputChange();
-    } else if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey) && e.shiftKey) {
-        e.preventDefault();
-        redo();
-    } else if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-    }
-}} />
+        if (e.code === "Space") {
+            e.preventDefault();
+            globals.showPreview = !globals.showPreview;
+            onInputChange();
+        } else if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+            e.preventDefault();
+            redo();
+        } else if (e.code === "KeyZ" && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+        }
+    }}
+    on:mousemove={onMousemove}
+    on:mouseup={onMouseup}
+/>
 
-<Controls bind:globals
-    on:change={onInputChange}
-    on:commit={pushHistory}
-    on:preset={(e) => applyPreset(e.detail)}>
-    <div slot="export-buttons" id="exportpanel">
+<div id="appshell"
+    class:dragging-h={isDraggingH}
+    class:dragging-v={isDraggingV}
+    style:--split-height="{splitHeight}vh">
+    <!-- Preview area -->
+    <div id="previewSpace"
+        role="region"
+        aria-label="Image preview and drop zone"
+        on:dragover|preventDefault={() => dragOver = true}
+        on:dragleave={() => dragOver = false}
+        on:drop={handleDrop}
+        class:drag-over={dragOver}>
+        {#if dragOver}
+            <div class="drop-overlay">Drop image here</div>
+        {/if}
+        {#if globals.baseIMG && !globals.showPreview}
+            <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" />
+        {/if}
+        <canvas bind:this={threshCanv} style:display={(globals.showPreview && globals.previewMode === "Mask") ? "block" : "none"}></canvas>
+        <canvas bind:this={glowCanv} style:display={(globals.showPreview && globals.previewMode === "Glow Only") ? "block" : "none"}></canvas>
+        <canvas bind:this={compCanv} style:display={(globals.showPreview && globals.previewMode === "Full") ? "block" : "none"}></canvas>
+    </div>
+
+    <!-- Vertical divider (mobile: between preview top and controls bottom) -->
+    <div id="divider-v"
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Resize preview and controls"
+        tabindex="0"
+        on:mousedown={onDividerMousedownV}></div>
+
+    <!-- Horizontal divider (desktop: between preview left and sidebar right) -->
+    <div id="divider-h"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
+        tabindex="0"
+        on:mousedown={onDividerMousedownH}></div>
+
+    <!-- Sidebar controls -->
+    <Controls bind:globals sidebarWidth={sidebarWidth}
+        on:change={onInputChange}
+        on:commit={pushHistory}
+        on:preset={(e) => applyPreset(e.detail)}>
+        <div slot="export-buttons" id="exportpanel">
         {#if !isPhotopeaPlugin && !isPhotoshopPlugin}
             <button on:click={() => {
                 let previewQualityTemp = globals.previewQuality;
@@ -278,23 +365,6 @@
         {/if}
     </div>
 </Controls>
-
-<div id="previewSpace"
-    role="region"
-    aria-label="Image preview and drop zone"
-    on:dragover|preventDefault={() => dragOver = true}
-    on:dragleave={() => dragOver = false}
-    on:drop={handleDrop}
-    class:drag-over={dragOver}>
-    {#if dragOver}
-        <div class="drop-overlay">Drop image here</div>
-    {/if}
-    {#if globals.baseIMG && !globals.showPreview}
-        <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" />
-    {/if}
-    <canvas bind:this={threshCanv} style:display={(globals.showPreview && globals.previewMode === "Mask") ? "block" : "none"}></canvas>
-    <canvas bind:this={glowCanv} style:display={(globals.showPreview && globals.previewMode === "Glow Only") ? "block" : "none"}></canvas>
-    <canvas bind:this={compCanv} style:display={(globals.showPreview && globals.previewMode === "Full") ? "block" : "none"}></canvas>
 </div>
 
 {#if landingScreenVisible}
@@ -319,25 +389,48 @@
         --special-color: #9800B0;
         --field-color: #0F0F0F;
         --bg-color: #1E1E1E;
+        --divider-color: #333;
+        --divider-hover: #555;
     }
 
     :global(body) {
         background-color: var(--bg-color);
         user-select: none;
+        margin: 0;
+        overflow: hidden;
     }
 
-    #previewSpace {
-        position: fixed;
-        left: 0;
-        top: 0;
+    /* App shell: side-by-side on desktop */
+    #appshell {
+        display: flex;
+        flex-direction: row;
+        width: 100vw;
         height: 100vh;
-        width: calc(100vw - 250px);
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
+
+    /* Suppress text selection while dragging */
+    #appshell.dragging-h,
+    #appshell.dragging-v {
+        cursor: grabbing;
+    }
+    #appshell.dragging-h { cursor: col-resize; }
+    #appshell.dragging-v { cursor: row-resize; }
+
+    /* Preview takes all remaining space to the left of the sidebar */
+    #previewSpace {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 100vh;
         text-align: center;
         display: flex;
         justify-content: center;
         align-items: center;
         padding: 25px;
         box-sizing: border-box;
+        position: relative;
     }
 
     #previewSpace.drag-over {
@@ -364,6 +457,27 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
+    }
+
+    /* Horizontal divider — between preview and sidebar on desktop */
+    #divider-h {
+        width: 5px;
+        height: 100vh;
+        background-color: var(--divider-color);
+        cursor: col-resize;
+        flex-shrink: 0;
+        transition: background-color 0.15s;
+        position: relative;
+        z-index: 10;
+    }
+    #divider-h:hover,
+    #appshell.dragging-h #divider-h {
+        background-color: var(--special-color);
+    }
+
+    /* Vertical divider — hidden on desktop, shown on mobile */
+    #divider-v {
+        display: none;
     }
 
     #exportpanel {
@@ -396,10 +510,36 @@
         background-color: #4B0057;
     }
 
+    /* Mobile layout: stack vertically */
     @media only screen and (max-width: 500px) {
+        #appshell {
+            flex-direction: column;
+        }
+
+        /* Preview on top, fixed height driven by splitHeight state */
         #previewSpace {
-            width: 100vw !important;
-            height: 50vh !important;
+            width: 100vw;
+            height: var(--split-height, 50vh);
+            flex: none;
+        }
+
+        /* Show vertical divider, hide horizontal */
+        #divider-v {
+            display: block;
+            width: 100vw;
+            height: 5px;
+            background-color: var(--divider-color);
+            cursor: row-resize;
+            flex-shrink: 0;
+            transition: background-color 0.15s;
+        }
+        #divider-v:hover,
+        #appshell.dragging-v #divider-v {
+            background-color: var(--special-color);
+        }
+
+        #divider-h {
+            display: none;
         }
     }
 

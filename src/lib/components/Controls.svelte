@@ -13,6 +13,9 @@
     /** The shared effect state object (bound from parent) */
     export let globals;
 
+    /** Sidebar width in px, driven by the resizable divider */
+    export let sidebarWidth = 250;
+
     /** @type {HTMLInputElement} */
     let presetImport;
 
@@ -29,7 +32,7 @@
     }
 </script>
 
-<div id="guicontainer">
+<div id="guicontainer" style:width="{sidebarWidth}px">
     <div class="preset-bar">
         <input bind:this={presetImport} type="file" accept="application/json" style:display="none"
             on:change={() => {
@@ -178,14 +181,13 @@
 
 <style>
     #guicontainer {
-        width: 250px;
+        width: 250px; /* fallback; overridden by inline style */
         box-sizing: border-box;
-        position: fixed;
-        right: 0;
-        top: 0;
         height: 100vh;
+        overflow-y: auto;
         padding: 6.9px;
         padding-bottom: 0;
+        flex-shrink: 0;
     }
 
     .preset-bar {
@@ -283,10 +285,9 @@
 
     @media only screen and (max-width: 500px) {
         #guicontainer {
-            width: 100vw;
-            top: 50vh;
-            height: 50vh;
-            overflow-y: scroll;
+            width: 100vw!important;
+            height: auto;
+            overflow-y: auto;
         }
         #guicontainer::-webkit-scrollbar {
             width: 6.9px;
