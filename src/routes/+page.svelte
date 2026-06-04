@@ -329,11 +329,22 @@
             style:transform="translate({panX}px, {panY}px) scale({zoom})"
             style:transform-origin="center center">
             {#if globals.baseIMG && !globals.showPreview}
-                <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" />
+                <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false"
+                    width={globals.baseIMG.width}
+                    height={globals.baseIMG.height} />
             {/if}
-            <canvas bind:this={threshCanv} style:display={(globals.showPreview && globals.previewMode === "Mask") ? "block" : "none"}></canvas>
-            <canvas bind:this={glowCanv} style:display={(globals.showPreview && globals.previewMode === "Glow Only") ? "block" : "none"}></canvas>
-            <canvas bind:this={compCanv} style:display={(globals.showPreview && globals.previewMode === "Full") ? "block" : "none"}></canvas>
+            <canvas bind:this={threshCanv}
+                style:display={(globals.showPreview && globals.previewMode === "Mask") ? "block" : "none"}
+                style:width="{globals.baseIMG ? globals.baseIMG.width + 'px' : ''}"
+                style:height="{globals.baseIMG ? globals.baseIMG.height + 'px' : ''}"></canvas>
+            <canvas bind:this={glowCanv}
+                style:display={(globals.showPreview && globals.previewMode === "Glow Only") ? "block" : "none"}
+                style:width="{globals.baseIMG ? globals.baseIMG.width + 'px' : ''}"
+                style:height="{globals.baseIMG ? globals.baseIMG.height + 'px' : ''}"></canvas>
+            <canvas bind:this={compCanv}
+                style:display={(globals.showPreview && globals.previewMode === "Full") ? "block" : "none"}
+                style:width="{globals.baseIMG ? globals.baseIMG.width + 'px' : ''}"
+                style:height="{globals.baseIMG ? globals.baseIMG.height + 'px' : ''}"></canvas>
         </div>
 
         <div id="zoomControls" on:mousedown|stopPropagation>
