@@ -4,9 +4,10 @@
     "description": "Photorealistic glow generator",
     "author": {
         "name": "Lunal Graphics",
-        "url": "https://lunalgraphics.github.io",
+        "url": "https://lunalgraphics.com",
         "email": "yikuansun2015@gmail.com"
     },
+    "homepage": "https://lunalgraphics.com/about-superbloom",
     "version": "3.0.0",
     "main": "main.js",
     "scripts": {
@@ -33,29 +34,9 @@
             "main.js",
             "app/**/*"
         ],
-        "dmg": {
-            "window": {
-                "width": 500,
-                "height": 300
-            },
-            "contents": [
-                {
-                    "x": 150,
-                    "y": 174
-                },
-                {
-                    "x": 350,
-                    "y": 174,
-                    "type": "link",
-                    "path": "/Applications"
-                }
-            ]
-        },
-        "nsis": {
-            "differentialPackage": false
-        },
         "win": {
-            "target": "nsis"
+            "target": "portable",
+            "signAndEditExecutable": false
         },
         "mac": {
             "target": "zip"
