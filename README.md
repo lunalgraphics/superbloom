@@ -64,10 +64,10 @@ npm install
 npm start
 
 # Package for your platform
-npm run build-win32    # Windows (NSIS installer)
-npm run build-darwin   # macOS (zip)
-npm run build-linux    # Linux (deb)
-npm run build-all      # All platforms
+npm run build:win32    # Windows (NSIS installer)
+npm run build:darwin   # macOS (zip)
+npm run build:linux    # Linux (deb)
+npm run build          # All platforms
 ```
 
 Packaged installers are output to `electron-app/dist/`. See [`electron-app/README.md`](electron-app/README.md) for more details.

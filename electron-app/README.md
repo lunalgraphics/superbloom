@@ -59,10 +59,10 @@ npm start
 Build distributable installers with electron-builder:
 
 ```bash
-npm run build-win32    # Windows — NSIS installer → dist/
-npm run build-darwin   # macOS — zip archive → dist/
-npm run build-linux    # Linux — .deb package → dist/
-npm run build-all      # All platforms (requires cross-platform tooling or CI)
+npm run build:win32    # Windows — NSIS installer → dist/
+npm run build:darwin   # macOS — zip archive → dist/
+npm run build:linux    # Linux — .deb package → dist/
+npm run build          # All platforms (requires cross-platform tooling or CI)
 ```
 
 Output goes to `dist/`.
