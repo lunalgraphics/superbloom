@@ -45,9 +45,32 @@ npm run build
 
 # Photoshop plugin variant
 npm run build:photoshop
+
+# Electron desktop app (builds the web assets into electron-app/app/)
+npm run build:electron
 ```
 
-The standalone build outputs to `build/`. The Photoshop build outputs to `webview-contents/`.
+The standalone build outputs to `build/`. The Photoshop build outputs to `webview-contents/`. The electron build outputs to `electron-app/app/`.
+
+### Desktop App (Electron)
+
+After building the web assets with `npm run build:electron`, you can run or package the desktop app:
+
+```bash
+cd electron-app
+npm install
+
+# Run in development
+npm start
+
+# Package for your platform
+npm run build-win32    # Windows (NSIS installer)
+npm run build-darwin   # macOS (zip)
+npm run build-linux    # Linux (deb)
+npm run build-all      # All platforms
+```
+
+Packaged installers are output to `electron-app/dist/`. See [`electron-app/README.md`](electron-app/README.md) for more details.
 
 ### Preview production build
 
@@ -122,6 +145,12 @@ src/
 ├── routes/
 │   ├── +layout.js       # Enables prerendering
 │   └── +page.svelte     # App shell (wires components + platform logic)
+electron-app/
+├── main.js              # Electron main process entry point
+├── package.json         # Electron dependencies and build config
+├── app/                 # (generated) SvelteKit build output served by Electron
+├── resources/           # App icons for packaging
+└── dist/                # (generated) Packaged installers
 photoshop-plugin/
 ├── index.html           # UXP panel markup
 ├── index.js             # UXP host logic (pixel transfer, Smart Object creation)

@@ -1,1 +1,0 @@
-Place icon.png into this folder
