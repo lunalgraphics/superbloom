@@ -1,6 +1,12 @@
 import adapter from '@sveltejs/adapter-static';
 
-const outDir = process.env.npm_lifecycle_script?.includes('--mode photoshop') ? 'photoshop-plugin/webview-contents' : 'build';
+let outDir = 'build';
+if (process.env.npm_lifecycle_script?.includes('--mode photoshop')) {
+	outDir = 'photoshop-plugin/webview-contents';
+}
+else if (process.env.npm_lifecycle_script?.includes('--mode electron')) {
+	outDir = 'electron-app/app'
+}
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

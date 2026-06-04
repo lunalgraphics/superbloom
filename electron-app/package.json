@@ -1,0 +1,48 @@
+{
+    "name": "lunalgraphics-superbloom",
+    "productName": "SuperBloom",
+    "description": "Photorealistic glow generator",
+    "author": {
+        "name": "Lunal Graphics",
+        "url": "https://lunalgraphics.com",
+        "email": "yikuansun2015@gmail.com"
+    },
+    "homepage": "https://lunalgraphics.com/about-superbloom",
+    "version": "3.0.0",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "build:linux": "electron-builder --linux",
+        "build:darwin": "electron-builder --mac",
+        "build:win32": "electron-builder --windows",
+        "build": "electron-builder --mac --linux --windows"
+    },
+    "devDependencies": {
+        "electron": "37.1.0",
+        "electron-builder": "^26.8.1"
+    },
+    "files": [
+        "main.js",
+        "app/**/*"
+    ],
+    "build": {
+        "appId": "com.electron.lunalgraphics-superbloom",
+        "directories": {
+            "buildResources": "resources"
+        },
+        "files": [
+            "main.js",
+            "app/**/*"
+        ],
+        "win": {
+            "target": "portable",
+            "signAndEditExecutable": false
+        },
+        "mac": {
+            "target": "zip"
+        },
+        "linux": {
+            "target": "deb"
+        }
+    }
+}
