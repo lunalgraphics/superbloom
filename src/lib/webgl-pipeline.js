@@ -176,12 +176,135 @@ function ensureDimensions(gl, state, width, height) {
 }
 
 /**
+ * Upload an image to a WebGL texture at the specified dimensions.
+ * Binds the texture, then calls texImage2D with the source image.
+ *
+ * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL context
+ * @param {WebGLTexture} texture - The texture to upload into
+ * @param {TexImageSource} image - The source image (HTMLImageElement, HTMLCanvasElement, etc.)
+ * @param {number} w - Target texture width in pixels
+ * @param {number} h - Target texture height in pixels
+ */
+function uploadTexture(gl, texture, image, w, h) {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+}
+
+/**
+ * Execute a single shader pass: bind program, set destination FBO, set viewport,
+ * upload all uniforms, bind fullscreen quad, and draw.
+ *
+ * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL context
+ * @param {WebGLProgram} program - The compiled shader program to use
+ * @param {{ fbo: WebGLFramebuffer, texture: WebGLTexture } | null} dstFBO - Destination FBO, or null for default framebuffer (renders to glCanvas)
+ * @param {number} w - Viewport width
+ * @param {number} h - Viewport height
+ * @param {Object} uniforms - Object mapping uniform names to values. Supported types:
+ *   - number → gl.uniform1f
+ *   - boolean → gl.uniform1i (0 or 1)
+ *   - Array(2) → gl.uniform2fv
+ *   - Array(3) → gl.uniform3fv
+ *   - WebGLTexture → bind to texture unit, gl.uniform1i with unit index
+ */
+function runPass(gl, program, dstFBO, w, h, uniforms) {
+    gl.useProgram(program);
+
+    // Bind destination framebuffer (null = default framebuffer → renders to glCanvas)
+    if (dstFBO) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, dstFBO.fbo);
+    } else {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    // Set viewport
+    gl.viewport(0, 0, w, h);
+
+    // Upload uniforms with type detection
+    let textureUnit = 0;
+    for (const [name, value] of Object.entries(uniforms)) {
+        const loc = gl.getUniformLocation(program, name);
+        if (loc === null) continue;
+
+        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            // sampler2D: bind texture to a unit and set uniform to unit index
+            gl.activeTexture(gl.TEXTURE0 + textureUnit);
+            gl.bindTexture(gl.TEXTURE_2D, value);
+            gl.uniform1i(loc, textureUnit);
+            textureUnit++;
+        } else if (typeof value === 'boolean') {
+            gl.uniform1i(loc, value ? 1 : 0);
+        } else if (typeof value === 'number') {
+            gl.uniform1f(loc, value);
+        } else if (Array.isArray(value) && value.length === 2) {
+            gl.uniform2fv(loc, value);
+        } else if (Array.isArray(value) && value.length === 3) {
+            gl.uniform3fv(loc, value);
+        }
+    }
+
+    // Bind the fullscreen quad VBO and enable vertex attribute
+    gl.bindBuffer(gl.ARRAY_BUFFER, state.quadVBO);
+    const posLoc = gl.getAttribLocation(program, 'a_position');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+    // Draw the fullscreen quad (6 vertices, 2 triangles)
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+/**
  * Returns true when the WebGL pipeline is ready to render.
  *
  * @returns {boolean}
  */
 export function isWebGLReady() {
     return state.gl !== null && !state.contextLost && webglAvailable;
+}
+
+/**
+ * Parse a CSS hex color string (#RRGGBB) to normalized [r, g, b] in [0, 1].
+ * @param {string} cssHex - CSS hex color string, e.g. '#FF8800'
+ * @returns {number[]} Array of [r, g, b] with values in [0, 1]
+ */
+function parseTintColor(cssHex) {
+    const hex = cssHex.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    return [r, g, b];
+}
+
+/**
+ * Render srcTexture to the internal glCanvas using the passthrough shader,
+ * then copy the result to the destination canvas via 2D drawImage.
+ *
+ * srcW/srcH control the viewport size for the WebGL render pass.
+ * dstW/dstH control the output canvas dimensions (enabling anamorphic stretch
+ * when they differ from srcW/srcH).
+ *
+ * @param {WebGLRenderingContext | WebGL2RenderingContext} gl - The WebGL context
+ * @param {WebGLProgram} program - The passthrough shader program
+ * @param {HTMLCanvasElement} destCanvas - The destination canvas to write to
+ * @param {number} dstW - Destination canvas width
+ * @param {number} dstH - Destination canvas height
+ * @param {WebGLTexture} srcTexture - The source texture to render
+ * @param {number} [srcW] - Viewport width for the WebGL render pass (defaults to state.currentWidth)
+ * @param {number} [srcH] - Viewport height for the WebGL render pass (defaults to state.currentHeight)
+ */
+function writeToCanvas(gl, program, destCanvas, dstW, dstH, srcTexture, srcW, srcH) {
+    // 1. Use runPass to render srcTexture to glCanvas (default framebuffer) using passthrough shader
+    //    Pass srcW/srcH as the viewport dimensions for the WebGL render
+    runPass(gl, program, null, srcW || state.currentWidth, srcH || state.currentHeight, {
+        u_source: srcTexture,
+    });
+
+    // 2. Set destination canvas dimensions
+    destCanvas.width = dstW;
+    destCanvas.height = dstH;
+
+    // 3. Use 2D context drawImage to copy from glCanvas to destCanvas
+    const ctx = destCanvas.getContext('2d');
+    ctx.drawImage(state.glCanvas, 0, 0, dstW, dstH);
 }
 
 /**
@@ -192,4 +315,4 @@ export function renderBloomWebGL(params, threshCanv, glowCanv, compCanv, options
 }
 
 // Exported for testing
-export { initContext, ensureDimensions, state };
+export { initContext, ensureDimensions, parseTintColor, writeToCanvas, state, uploadTexture, runPass };
