@@ -7,6 +7,7 @@
 
 import { SHADERS } from './webgl-shaders.js';
 import { detectWebGL, createFBO, resizeFBO, createProgram, bindFullscreenQuad } from './webgl-resources.js';
+import { renderBloomCanvas2D } from './bloom-canvas2d.js';
 
 // Module-level flag: once set to false, WebGL is permanently unavailable
 // (distinct from contextLost, which is recoverable).
@@ -308,10 +309,121 @@ function writeToCanvas(gl, program, destCanvas, dstW, dstH, srcTexture, srcW, sr
 }
 
 /**
- * Placeholder for the full render function (implemented in task 7.1).
+ * Full WebGL bloom render pipeline. Executes 12-step render loop:
+ * 1. Lazy init / context recovery
+ * 2. Cancellation token
+ * 3. Compute render dimensions
+ * 4. Resize FBOs if needed
+ * 5. Upload source image
+ * 6. Threshold pass
+ * 7. Copy threshold to threshCanv
+ * 8. Dual-Kawase downsample
+ * 9. Dual-Kawase upsample
+ * 10. Colorize pass
+ * 11. Write glow to glowCanv
+ * 12. Composite pass (if not skipped)
+ *
+ * @param {object} params - Render parameters (baseIMG, threshold, glowLayers, glowRadius, etc.)
+ * @param {HTMLCanvasElement} threshCanv - Output canvas for threshold result
+ * @param {HTMLCanvasElement} glowCanv - Output canvas for glow result
+ * @param {HTMLCanvasElement} compCanv - Output canvas for composite result
+ * @param {object} [options] - Options object
+ * @param {boolean} [options.skipComposite=false] - If true, skip the composite pass
+ * @param {function} [options.onComplete] - Called when rendering is finished
  */
-export function renderBloomWebGL(params, threshCanv, glowCanv, compCanv, options = {}) {
-    // Will be implemented in task 7.1
+export function renderBloomWebGL(params, threshCanv, glowCanv, compCanv, { skipComposite = false, onComplete } = {}) {
+    // Guard: image not loaded yet
+    if (params.baseIMG.naturalWidth === 0) return;
+
+    // 1. Lazy init / context recovery
+    if (state.contextLost || !state.gl) {
+        if (!initContext()) {
+            // WebGL unavailable — fall through to Canvas 2D
+            renderBloomCanvas2D(params, threshCanv, glowCanv, compCanv, { skipComposite, onComplete });
+            return;
+        }
+    }
+
+    // 2. Cancellation token — invalidates any in-flight render
+    const token = ++state.renderToken;
+    const gl = state.gl;
+
+    // 3. Compute render dimensions
+    const W = Math.max(1, Math.round(params.baseIMG.width * params.previewQuality));
+    const H = Math.max(1, Math.round(params.baseIMG.height * params.previewQuality));
+
+    // 4. Resize FBOs if needed
+    ensureDimensions(gl, state, W, H);
+    if (token !== state.renderToken) return; // cancelled
+
+    // 5. Upload source image to sourceTexture
+    uploadTexture(gl, state.sourceTexture, params.baseIMG, W, H);
+
+    // 6. Threshold pass → threshFBO
+    runPass(gl, state.programs.threshold, state.threshFBO, W, H, {
+        u_source: state.sourceTexture,
+        u_threshold: params.threshold / 255.0,
+    });
+    if (token !== state.renderToken) return;
+
+    // 7. Copy threshFBO → threshCanv (2D drawImage)
+    writeToCanvas(gl, state.programs.passthrough, threshCanv, W, H, state.threshFBO.texture, W, H);
+
+    // 8. Dual-Kawase downsample × glowLayers
+    let srcFBO = state.threshFBO;
+    for (let i = 0; i < params.glowLayers; i++) {
+        if (token !== state.renderToken) return;
+        let dstFBO = (i % 2 === 0) ? state.pingFBO : state.pongFBO;
+        runPass(gl, state.programs.downsample, dstFBO, W, H, {
+            u_source: srcFBO.texture,
+            u_texelSize: [1.0 / W, 1.0 / H],
+            u_offset: (i + 0.5) * params.glowRadius,
+        });
+        srcFBO = dstFBO;
+    }
+
+    // 9. Dual-Kawase upsample × glowLayers
+    for (let i = params.glowLayers - 1; i >= 0; i--) {
+        if (token !== state.renderToken) return;
+        let dstFBO = (i % 2 === 0) ? state.pongFBO : state.pingFBO;
+        runPass(gl, state.programs.upsample, dstFBO, W, H, {
+            u_source: srcFBO.texture,
+            u_texelSize: [1.0 / W, 1.0 / H],
+            u_offset: (i + 0.5) * params.glowRadius,
+        });
+        srcFBO = dstFBO;
+    }
+
+    // 10. Colorize pass → glowFBO
+    const [tr, tg, tb] = parseTintColor(params.tintcolor);
+    runPass(gl, state.programs.colorize, state.glowFBO, W, H, {
+        u_source: srcFBO.texture,
+        u_hue: params.hue,
+        u_saturation: params.saturation,
+        u_brightness: params.brightness,
+        u_colorize: params.colorize,
+        u_tintcolor: [tr, tg, tb],
+        u_tintopacity: params.tintopacity / 100.0,
+    });
+    if (token !== state.renderToken) return;
+
+    // 11. Write glow to glowCanv (with optional anamorphic stretch via drawImage scaling)
+    const stretchW = params.anamorph > 0 ? Math.round(W * (params.anamorph + 1)) : W;
+    writeToCanvas(gl, state.programs.passthrough, glowCanv, stretchW, H, state.glowFBO.texture, W, H);
+
+    // 12. Composite pass (if not skipped)
+    if (!skipComposite) {
+        runPass(gl, state.programs.composite, null, W, H, {
+            u_base: state.sourceTexture,
+            u_glow: state.glowFBO.texture,
+        });
+        const ctx = compCanv.getContext('2d');
+        compCanv.width = W;
+        compCanv.height = H;
+        ctx.drawImage(state.glCanvas, 0, 0);
+    }
+
+    if (onComplete) onComplete();
 }
 
 // Exported for testing
