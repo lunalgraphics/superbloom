@@ -31,14 +31,20 @@ window.addEventListener("message", (e) => {
         console.log("webview loaded");
     }
     else if (e.data.type == "exportLayer") {
-        // The webview sends back processed bloom pixels to be inserted as a layer
+        // The webview sends back the bloom layer as base64-encoded raw RGBA bytes
         console.log("exporting");
-        let view = Uint8Array.from(e.data.data);
         modal.close();
 
         core.executeAsModal(async () => {
-            // Create an ImageData object from the raw RGBA buffer
-            let imageData = await imaging.createImageDataFromBuffer(view, {
+            // Decode base64 → binary string → Uint8Array of raw RGBA bytes
+            let binary = atob(e.data.data);
+            let bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+
+            // Pass the raw RGBA buffer directly — no image decoding needed
+            let imageData = await imaging.createImageDataFromBuffer(bytes, {
                 width: app.activeDocument.width,
                 height: app.activeDocument.height,
                 components: 4,

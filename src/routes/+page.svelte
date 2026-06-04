@@ -461,10 +461,19 @@
                 requestAnimationFrame(() => process({
                     skipComposite: true,
                     onComplete: () => {
+                        // Encode raw RGBA pixels as base64 — avoids PNG encoding/decoding
+                        // and doesn't rely on UXP canvas support.
+                        // Chunked String.fromCharCode prevents stack overflow on large images.
                         let imageData = glowCanv.getContext("2d").getImageData(0, 0, glowCanv.width, glowCanv.height);
+                        let bytes = new Uint8Array(imageData.data.buffer);
+                        let binary = "";
+                        const CHUNK = 8192;
+                        for (let i = 0; i < bytes.length; i += CHUNK) {
+                            binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+                        }
                         window.uxpHost.postMessage({
                             type: "exportLayer",
-                            data: Array.from(imageData.data),
+                            data: btoa(binary),
                             metadata: getPresetData(globals),
                         });
                         globals.previewQuality = previewQualityTemp;
