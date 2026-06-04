@@ -255,10 +255,14 @@ function runPass(gl, program, dstFBO, w, h, uniforms) {
 
 /**
  * Returns true when the WebGL pipeline is ready to render.
+ * On first call, triggers lazy initialization of the WebGL context.
  *
  * @returns {boolean}
  */
 export function isWebGLReady() {
+    if (!state.gl && webglAvailable && !state.contextLost) {
+        initContext();
+    }
     return state.gl !== null && !state.contextLost && webglAvailable;
 }
 
