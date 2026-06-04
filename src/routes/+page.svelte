@@ -113,6 +113,7 @@
     function handleImageLoad(img, filename = "") {
         globals.baseIMG = img;
         globals.imgname = filename;
+        resetView();
         img.addEventListener("load", function () {
             threshCanv.width = this.width;
             threshCanv.height = this.height;
@@ -192,11 +193,58 @@
             let maxPct = 100 - minPct;
             splitHeight = Math.max(minPct, Math.min(maxPct, pct));
         }
+        if (isPanning) {
+            panX = e.clientX - panStartX;
+            panY = e.clientY - panStartY;
+        }
     }
 
     function onMouseup() {
         isDraggingH = false;
         isDraggingV = false;
+        isPanning = false;
+    }
+
+    // --- Zoom / pan ---
+
+    const ZOOM_MIN = 0.1;
+    const ZOOM_MAX = 10;
+
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let isPanning = false;
+    let panStartX = 0;
+    let panStartY = 0;
+
+    function resetView() {
+        zoom = 1;
+        panX = 0;
+        panY = 0;
+    }
+
+    function onPreviewWheel(e) {
+        e.preventDefault();
+        let factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        let newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * factor));
+
+        // Zoom toward the cursor position within the preview area
+        let rect = e.currentTarget.getBoundingClientRect();
+        let cx = e.clientX - rect.left - rect.width / 2;
+        let cy = e.clientY - rect.top - rect.height / 2;
+        panX = cx - (cx - panX) * (newZoom / zoom);
+        panY = cy - (cy - panY) * (newZoom / zoom);
+        zoom = newZoom;
+    }
+
+    function onPreviewMousedown(e) {
+        // Only start panning on left-click, and not when clicking a divider
+        if (e.button !== 0) return;
+        if (e.target.id === "divider-h" || e.target.id === "divider-v") return;
+        isPanning = true;
+        panStartX = e.clientX - panX;
+        panStartY = e.clientY - panY;
+        e.preventDefault();
     }
 
     onMount(async () => {
@@ -267,16 +315,67 @@
         on:dragover|preventDefault={() => dragOver = true}
         on:dragleave={() => dragOver = false}
         on:drop={handleDrop}
-        class:drag-over={dragOver}>
+        on:wheel|preventDefault={onPreviewWheel}
+        on:mousedown={onPreviewMousedown}
+        on:dblclick|self={resetView}
+        class:drag-over={dragOver}
+        class:panning={isPanning}>
         {#if dragOver}
             <div class="drop-overlay">Drop image here</div>
         {/if}
-        {#if globals.baseIMG && !globals.showPreview}
-            <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" />
-        {/if}
-        <canvas bind:this={threshCanv} style:display={(globals.showPreview && globals.previewMode === "Mask") ? "block" : "none"}></canvas>
-        <canvas bind:this={glowCanv} style:display={(globals.showPreview && globals.previewMode === "Glow Only") ? "block" : "none"}></canvas>
-        <canvas bind:this={compCanv} style:display={(globals.showPreview && globals.previewMode === "Full") ? "block" : "none"}></canvas>
+
+        <!-- Zoom/pan transform wrapper -->
+        <div id="previewContent"
+            style:transform="translate({panX}px, {panY}px) scale({zoom})"
+            style:transform-origin="center center">
+            {#if globals.baseIMG && !globals.showPreview}
+                <img src={globals.baseIMG.src} alt="base layer" id="baseImage" draggable="false" />
+            {/if}
+            <canvas bind:this={threshCanv} style:display={(globals.showPreview && globals.previewMode === "Mask") ? "block" : "none"}></canvas>
+            <canvas bind:this={glowCanv} style:display={(globals.showPreview && globals.previewMode === "Glow Only") ? "block" : "none"}></canvas>
+            <canvas bind:this={compCanv} style:display={(globals.showPreview && globals.previewMode === "Full") ? "block" : "none"}></canvas>
+        </div>
+
+        <div id="zoomControls" on:mousedown|stopPropagation>
+            <button class="zoom-btn" on:click|stopPropagation={() => {
+                let newZoom = Math.min(ZOOM_MAX, zoom * 1.25);
+                panX = panX * (newZoom / zoom);
+                panY = panY * (newZoom / zoom);
+                zoom = newZoom;
+            }} title="Zoom in">
+                <!-- Plus icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="7"/>
+                    <line x1="11" y1="8" x2="11" y2="14"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/>
+                    <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+                </svg>
+            </button>
+            <button class="zoom-btn" on:click|stopPropagation={() => {
+                let newZoom = Math.max(ZOOM_MIN, zoom / 1.25);
+                panX = panX * (newZoom / zoom);
+                panY = panY * (newZoom / zoom);
+                zoom = newZoom;
+            }} title="Zoom out">
+                <!-- Minus icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="7"/>
+                    <line x1="8" y1="11" x2="14" y2="11"/>
+                    <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+                </svg>
+            </button>
+            <div class="zoom-divider"></div>
+            <button class="zoom-btn" class:muted={zoom === 1 && panX === 0 && panY === 0}
+                on:click|stopPropagation={resetView} title="Reset view (double-click preview)">
+                <!-- Fit/reset icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polyline points="15 3 21 3 21 9"/>
+                    <polyline points="9 21 3 21 3 15"/>
+                    <line x1="21" y1="3" x2="14" y2="10"/>
+                    <line x1="3" y1="21" x2="10" y2="14"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <!-- Vertical divider (mobile: between preview top and controls bottom) -->
@@ -431,6 +530,12 @@
         padding: 25px;
         box-sizing: border-box;
         position: relative;
+        overflow: hidden;
+        cursor: grab;
+    }
+
+    #previewSpace.panning {
+        cursor: grabbing;
     }
 
     #previewSpace.drag-over {
@@ -453,10 +558,83 @@
         pointer-events: none;
     }
 
-    canvas, img#baseImage {
+    /* Inner wrapper that receives the zoom/pan transform */
+    #previewContent {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 100%;
         height: 100%;
+        will-change: transform;
+    }
+
+    canvas, img#baseImage {
+        max-width: 100%;
+        max-height: 100%;
         object-fit: contain;
+        display: block;
+    }
+
+    #zoomControls {
+        position: absolute;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        background: rgba(20, 20, 20, 0.85);
+        backdrop-filter: blur(6px);
+        border-radius: 8px;
+        padding: 5px 7px;
+        z-index: 5;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+    }
+
+    #previewSpace:hover #zoomControls {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .zoom-btn {
+        background: transparent;
+        border: 0;
+        border-radius: 5px;
+        padding: 5px;
+        cursor: pointer;
+        color: whitesmoke;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.15s;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: inherit;
+        font-weight: normal;
+        margin: 0;
+    }
+
+    .zoom-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .zoom-btn:hover {
+        background-color: rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .zoom-btn.muted {
+        opacity: 0.35;
+        pointer-events: none;
+    }
+
+    .zoom-divider {
+        width: 1px;
+        height: 16px;
+        background: rgba(255, 255, 255, 0.2);
+        margin: 0 3px;
     }
 
     /* Horizontal divider — between preview and sidebar on desktop */
