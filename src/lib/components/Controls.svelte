@@ -288,18 +288,21 @@
             width: 100vw!important;
             height: auto;
             overflow-y: auto;
+            flex: 1 1 0;
         }
-        #guicontainer::-webkit-scrollbar {
-            width: 6.9px;
-        }
-        #guicontainer::-webkit-scrollbar-track {
-            background-color: #272727;
-        }
-        #guicontainer::-webkit-scrollbar-thumb {
-            background-color: #424242;
-        }
-        #guicontainer::-webkit-scrollbar-thumb:hover {
-            background-color: #343434;
-        }
+    }
+    
+    #guicontainer::-webkit-scrollbar {
+        width: 7px;
+        height: 7px;
+    }
+    #guicontainer::-webkit-scrollbar-track {
+        background-color: #272727;
+    }
+    #guicontainer::-webkit-scrollbar-thumb {
+        background-color: #424242;
+    }
+    #guicontainer::-webkit-scrollbar-thumb:hover {
+        background-color: #343434;
     }
 </style>
