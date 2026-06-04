@@ -5,6 +5,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"build:photoshop": "vite build --mode photoshop",
+		"build:electron": "vite build --mode electron",
 		"preview": "vite preview"
 	},
 	"devDependencies": {
