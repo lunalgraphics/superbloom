@@ -13,9 +13,29 @@
 
     /** @type {HTMLInputElement} */
     let imgUpload;
+
+    let dragOver = false;
+
+    function handleDrop(e) {
+        e.preventDefault();
+        dragOver = false;
+        let file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+            dispatch("drop", file);
+        }
+    }
 </script>
 
-<div id="landingscreen">
+<div id="landingscreen"
+    role="region"
+    aria-label="Upload area"
+    on:dragover|preventDefault={() => dragOver = true}
+    on:dragleave={() => dragOver = false}
+    on:drop={handleDrop}
+    class:drag-over={dragOver}>
+    {#if dragOver}
+        <div class="drop-overlay">Drop image here</div>
+    {/if}
     <div id="lsRight">
         <div class="centeredblock" style="text-align: center;">
             <input type="file" accept="image/*"
@@ -117,6 +137,26 @@
         #lsRight {
             width: 100vw !important;
         }
+    }
+
+    .drag-over {
+        outline: 3px dashed var(--special-color, #9800B0);
+        outline-offset: -3px;
+    }
+
+    .drop-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.7);
+        color: whitesmoke;
+        font-family: var(--ux-font);
+        font-size: 24px;
+        font-weight: 600;
+        z-index: 100;
+        pointer-events: none;
     }
 
     button {
