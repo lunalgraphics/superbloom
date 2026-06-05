@@ -116,10 +116,18 @@
         resetView();
 
         function onReady() {
-            threshCanv.width = img.width;
-            threshCanv.height = img.height;
-            process();
-            landingScreenVisible = false;
+            img.decode().then(() => {
+                threshCanv.width = img.width;
+                threshCanv.height = img.height;
+                process();
+                landingScreenVisible = false;
+            }).catch(() => {
+                // decode() rejected — fall back to drawing immediately
+                threshCanv.width = img.width;
+                threshCanv.height = img.height;
+                process();
+                landingScreenVisible = false;
+            });
         }
 
         if (img.complete && img.naturalWidth > 0) {
