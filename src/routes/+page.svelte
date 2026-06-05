@@ -116,18 +116,12 @@
         resetView();
 
         function onReady() {
-            img.decode().then(() => {
-                threshCanv.width = img.width;
-                threshCanv.height = img.height;
-                process();
-                landingScreenVisible = false;
-            }).catch(() => {
-                // decode() rejected — fall back to drawing immediately
-                threshCanv.width = img.width;
-                threshCanv.height = img.height;
-                process();
-                landingScreenVisible = false;
-            });
+            threshCanv.width = img.width;
+            threshCanv.height = img.height;
+            // Reassign to trigger Svelte reactivity for style bindings that read globals.baseIMG.width/height
+            globals = globals;
+            process();
+            landingScreenVisible = false;
         }
 
         if (img.complete && img.naturalWidth > 0) {
