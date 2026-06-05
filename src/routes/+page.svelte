@@ -114,12 +114,20 @@
         globals.baseIMG = img;
         globals.imgname = filename;
         resetView();
-        img.addEventListener("load", function () {
-            threshCanv.width = this.width;
-            threshCanv.height = this.height;
+
+        function onReady() {
+            threshCanv.width = img.width;
+            threshCanv.height = img.height;
             process();
             landingScreenVisible = false;
-        });
+        }
+
+        if (img.complete && img.naturalWidth > 0) {
+            onReady();
+        } else {
+            img.addEventListener("load", onReady);
+        }
+
         img.addEventListener("error", function () {
             alert("Failed to load image. The file may be corrupt or unsupported.");
             globals.baseIMG = null;
