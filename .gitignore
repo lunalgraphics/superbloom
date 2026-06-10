@@ -27,3 +27,7 @@ build
 # LLM Output
 COMPLAINTS.md
 .kiro
+
+# Photoshop stuff
+*.ccx
+photoshop-plugin/webview-contents
