@@ -21,7 +21,7 @@ let webViewLoaded = false;
 let modal = document.getElementById("dialog");
 
 // --- Message handler: receives events from the SuperBloom webview ---
-window.addEventListener("message", (e) => {
+window.addEventListener("message", async (e) => {
     if (typeof e.data == "string") e.data = JSON.parse(e.data);
     console.log(e);
 
@@ -34,6 +34,9 @@ window.addEventListener("message", (e) => {
         // The webview sends back the bloom layer as base64-encoded raw RGBA bytes
         console.log("exporting");
         modal.close();
+
+        // Bug in Photoshop 27.9 --- executeAsModal doesn't work immediately after modal.close()
+        await new Promise(r => setTimeout(r, 100));
 
         core.executeAsModal(async () => {
             // Decode base64 → binary string → Uint8Array of raw RGBA bytes
