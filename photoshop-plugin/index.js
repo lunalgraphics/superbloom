@@ -34,6 +34,13 @@ window.addEventListener("message", async (e) => {
         // The webview sends back the bloom layer as base64-encoded raw RGBA bytes
         console.log("exporting");
         modal.close();
+        
+        // Decode base64 → binary string → Uint8Array of raw RGBA bytes
+        let binary = atob(e.data.data);
+        let bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
 
         // Bug in Photoshop 27.9 --- executeAsModal doesn't work immediately after modal.close()
         await new Promise(r => setTimeout(r, 100));
@@ -46,13 +53,6 @@ window.addEventListener("message", async (e) => {
             });
 
             try {
-                // Decode base64 → binary string → Uint8Array of raw RGBA bytes
-                let binary = atob(e.data.data);
-                let bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) {
-                    bytes[i] = binary.charCodeAt(i);
-                }
-
                 // Pass the raw RGBA buffer directly — no image decoding needed
                 let imageData = await imaging.createImageDataFromBuffer(bytes, {
                     width: app.activeDocument.width,
