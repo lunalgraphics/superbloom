@@ -38,57 +38,71 @@ window.addEventListener("message", async (e) => {
         // Bug in Photoshop 27.9 --- executeAsModal doesn't work immediately after modal.close()
         await new Promise(r => setTimeout(r, 100));
 
-        core.executeAsModal(async () => {
-            // Decode base64 → binary string → Uint8Array of raw RGBA bytes
-            let binary = atob(e.data.data);
-            let bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-
-            // Pass the raw RGBA buffer directly — no image decoding needed
-            let imageData = await imaging.createImageDataFromBuffer(bytes, {
-                width: app.activeDocument.width,
-                height: app.activeDocument.height,
-                components: 4,
-                colorSpace: "RGB",
+        core.executeAsModal(async (executionContext) => {
+            // Suspend history to capture changes as one state
+            const suspensionID = await executionContext.hostControl.suspendHistory({
+                documentID: app.activeDocument.id,
+                name: "SuperBloom"
             });
 
-            // Insert the bloom as a new pixel layer
-            let glowLayer = await app.activeDocument.layers.add();
-            await imaging.putPixels({
-                layerID: glowLayer.id,
-                imageData: imageData,
-            });
-            glowLayer.bringToFront();
-            glowLayer.name = "render";
-
-            // Store the preset metadata in a hidden text layer (for later re-editing)
-            let textLayer = await app.activeDocument.createTextLayer({
-                contents: e.data.metadata,
-                position: { x: 0, y: app.activeDocument.height / 2 },
-                fontSize: 1,
-            });
-            textLayer.name = "metadata";
-            textLayer.visible = false;
-            textLayer.bringToFront();
-
-            // Convert both layers into a single Smart Object
-            app.activeDocument.activeLayers = [glowLayer, textLayer];
-            await action.batchPlay([
-                {
-                    _obj: "newPlacedLayer",
-                    _isCommand: true,
-                    _options: {
-                        dialogOptions: "dontDisplay",
-                    }
+            try {
+                // Decode base64 → binary string → Uint8Array of raw RGBA bytes
+                let binary = atob(e.data.data);
+                let bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    bytes[i] = binary.charCodeAt(i);
                 }
-            ], {});
 
-            // Name and blend the Smart Object
-            app.activeDocument.activeLayers[0].name = "SuperBloom";
-            app.activeDocument.activeLayers[0].blendMode = constants.BlendMode.SCREEN;
-        }).catch(err => core.showAlert(err));
+                // Pass the raw RGBA buffer directly — no image decoding needed
+                let imageData = await imaging.createImageDataFromBuffer(bytes, {
+                    width: app.activeDocument.width,
+                    height: app.activeDocument.height,
+                    components: 4,
+                    colorSpace: "RGB",
+                });
+
+                // Insert the bloom as a new pixel layer
+                let glowLayer = await app.activeDocument.layers.add();
+                await imaging.putPixels({
+                    layerID: glowLayer.id,
+                    imageData: imageData,
+                });
+                glowLayer.bringToFront();
+                glowLayer.name = "render";
+
+                // Store the preset metadata in a hidden text layer (for later re-editing)
+                let textLayer = await app.activeDocument.createTextLayer({
+                    contents: e.data.metadata,
+                    position: { x: 0, y: app.activeDocument.height / 2 },
+                    fontSize: 1,
+                });
+                textLayer.name = "metadata";
+                textLayer.visible = false;
+                textLayer.bringToFront();
+
+                // Convert both layers into a single Smart Object
+                app.activeDocument.activeLayers = [glowLayer, textLayer];
+                await action.batchPlay([
+                    {
+                        _obj: "newPlacedLayer",
+                        _isCommand: true,
+                        _options: {
+                            dialogOptions: "dontDisplay",
+                        }
+                    }
+                ], {});
+
+                // Name and blend the Smart Object
+                app.activeDocument.activeLayers[0].name = "SuperBloom";
+                app.activeDocument.activeLayers[0].blendMode = constants.BlendMode.SCREEN;
+
+                // Resume history
+                await executionContext.hostControl.resumeHistory(suspensionID);
+            } catch (err) {
+                await executionContext.hostControl.resumeHistory(suspensionID, false);
+                throw err;
+            }
+        }, { commandName: "SuperBloom" }).catch(err => core.showAlert(err));
     }
 });
 
